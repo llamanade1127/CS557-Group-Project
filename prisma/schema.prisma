@@ -27,21 +27,21 @@ model User {
   created_at DateTime @default(now())
 
   role_id    Int
-  role Role  @relations(fields: [role_id], references: [role_id])
+  role Role  @relation(fields: [role_id], references: [role_id])
 
   watchlists Watchlist[]
   ratings    User_Rating[]
 }
 
 model Anime {
-  anime_id     Int
-  title        String
+  anime_id     Int    @id @default(autoincrement())
+  title        String @unique
   genre        String
   episodes     Int
   release_year Int
   description  String
 
-  watchlists   Watchist[]
+  watchlists   Watchlist[]
   ratings      User_Rating[]
 }
 
@@ -53,19 +53,18 @@ model Watchlist {
   status       String
 
   user         User  @relation(fields: [user_id], references: [user_id])
-  anime        Anime @relation(feilds: [anime_id], references: [user_id])
+  anime        Anime @relation(fields: [anime_id], references: [anime_id])
 }
 
 model User_Rating {
   rating_id    Int      @id @default(autoincrement())
-
   user_id      Int
   anime_id     Int
   rating_score Int
   rated_at     DateTime @default(now())
 
-  user         User     @relation(fields: [user_id], references: [user_id])
-  anime        Anime    @relation(feilds: [anime_id], references: [user_id])
+  user  User  @relation(fields: [user_id], references: [user_id])
+  anime Anime @relation(fields: [anime_id], references: [anime_id])
 
   @@unique([user_id, anime_id])
 }
