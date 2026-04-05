@@ -12,8 +12,60 @@ datasource db {
   provider = "sqlite"
 }
 
+model Role {
+  role_id Int @id @default(autoincrement())
+  role_name String
+
+  users User[] // one role -> many users
+}
+
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
+  user_id    Int @id  @default(autoincrement())
+  username   String   @unique
+  email      String   @unique
+  password   String
+  created_at DateTime @default(now())
+
+  role_id    Int
+  role Role  @relations(fields: [role_id], references: [role_id])
+
+  watchlists Watchlist[]
+  ratings    User_Rating[]
+}
+
+model Anime {
+  anime_id     Int
+  title        String
+  genre        String
+  episodes     Int
+  release_year Int
+  description  String
+
+  watchlists   Watchist[]
+  ratings      User_Rating[]
+}
+
+model Watchlist {
+  watchlist_id Int   @id @default(autoincrement())
+
+  user_id      Int
+  anime_id     Int
+  status       String
+
+  user         User  @relation(fields: [user_id], references: [user_id])
+  anime        Anime @relation(feilds: [anime_id], references: [user_id])
+}
+
+model User_Rating {
+  rating_id    Int      @id @default(autoincrement())
+
+  user_id      Int
+  anime_id     Int
+  rating_score Int
+  rated_at     DateTime @default(now())
+
+  user         User     @relation(fields: [user_id], references: [user_id])
+  anime        Anime    @relation(feilds: [anime_id], references: [user_id])
+
+  @@unique([user_id, anime_id])
 }
