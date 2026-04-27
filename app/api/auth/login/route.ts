@@ -11,17 +11,21 @@ const DUMMY_HASH =
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { username, password } = await req.json();
 
-    if (!email?.trim() || !password) {
+
+
+    const cleanUsername = username?.trim();
+
+    if (!cleanUsername || !password) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: "Username and password are required." },
         { status: 400 }
       );
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { username: cleanUsername },
     });
 
     const valid = user
@@ -35,7 +39,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const raw = await createSession(user.id);
+    const raw = await createSession(user.user_id);
 
     (await cookies()).set("session", raw, {
       httpOnly: true,

@@ -8,7 +8,7 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: username, password }),
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Something went wrong.");
@@ -45,8 +45,8 @@ export default function LoginPage() {
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
-            label="Email" type="email" fullWidth required
-            value={email} onChange={(e) => setEmail(e.target.value)}
+            label="Username" type="text" fullWidth required
+            value={username} onChange={(e) => setUsername(e.target.value)}
             sx={{ mb: 2 }}
           />
           <TextField

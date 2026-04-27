@@ -6,48 +6,55 @@ import { hashPassword, createSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { username, email, password } = await req.json();
 
-    // Validation
-    if (!email?.trim() || !password)
+    const cleanUsername = username?.trim();
+    const cleanEmail = email?.toLowerCase().trim();
+
+    if (!cleanUsername || !cleanEmail || !password) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: "Username, email, and password are required." },
         { status: 400 }
       );
+    }
 
-    if (password.length < 8)
+    if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters." },
         { status: 400 }
       );
+    }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       return NextResponse.json(
         { error: "Invalid email address." },
         { status: 400 }
       );
+    }
 
-    // Check for existing account
-    const existing = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
-
-    if (existing)
-      return NextResponse.json(
-        { error: "An account with that email already exists." },
-        { status: 409 }
-      );
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email: email.toLowerCase().trim(),
-        password: await hashPassword(password),
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanUsername }],
       },
     });
 
-    // Start session
-    const raw = await createSession(user.id);
+    if (existing) {
+      return NextResponse.json(
+        { error: "An account with that email or username already exists." },
+        { status: 409 }
+      );
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        username: cleanUsername,
+        email: cleanEmail,
+        password: await hashPassword(password),
+        role_id: 1,
+      },
+    });
+
+    const raw = await createSession(user.user_id);
 
     (await cookies()).set("session", raw, {
       httpOnly: true,
@@ -60,6 +67,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[register]", err);
+
     return NextResponse.json(
       { error: "Server error. Please try again." },
       { status: 500 }

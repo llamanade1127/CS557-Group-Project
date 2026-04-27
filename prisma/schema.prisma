@@ -13,9 +13,17 @@ datasource db {
   provider = "sqlite"
 }
 
+enum WatchStatus {
+  PLAN_TO_WATCH
+  WATCHING
+  COMPLETED
+  DROPPED
+  ON_HOLD
+}
+
 model Role {
   role_id Int @id @default(autoincrement())
-  role_name String
+  role_name String @unique
 
   users User[] // one role -> many users
 }
@@ -42,42 +50,52 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
 
+
+  @@index([userId])
 }
 
 model Anime {
   anime_id     Int    @id @default(autoincrement())
-  title        String @unique
+  title        String
   genre        String
   episodes     Int
   release_year Int
   description  String
 
-  watchlists   Watchlist[]
-  ratings      User_Rating[]
+  watchlists Watchlist[]
+  ratings    User_Rating[]
+
+  @@unique([title, release_year])
 }
 
 model Watchlist {
-  watchlist_id Int   @id @default(autoincrement())
+  watchlist_id Int @id @default(autoincrement())
 
-  user_id      Int
-  anime_id     Int
-  status       String
+  user_id Int
+  anime_id Int
+  status WatchStatus
 
-  user         User  @relation(fields: [user_id], references: [user_id])
-  anime        Anime @relation(fields: [anime_id], references: [anime_id])
+  user  User  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  anime Anime @relation(fields: [anime_id], references: [anime_id], onDelete: Cascade)
+
+  @@unique([user_id, anime_id])
+  @@index([user_id])
+  @@index([anime_id])
 }
 
 model User_Rating {
-  rating_id    Int      @id @default(autoincrement())
+  rating_id    Int @id @default(autoincrement())
   user_id      Int
   anime_id     Int
   rating_score Int
   rated_at     DateTime @default(now())
 
-  user  User  @relation(fields: [user_id], references: [user_id])
-  anime Anime @relation(fields: [anime_id], references: [anime_id])
+  user  User  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  anime Anime @relation(fields: [anime_id], references: [anime_id], onDelete: Cascade)
 
   @@unique([user_id, anime_id])
+  @@index([user_id])
+  @@index([anime_id])
 }

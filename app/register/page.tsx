@@ -15,20 +15,25 @@ import {
 } from "@mui/material";
 
 // ── Password strength ─────────────────────────────────────────
-function getStrength(pw: string): { score: number; label: string; color: "error" | "warning" | "info" | "success" } {
+function getStrength(pw: string): {
+  score: number;
+  label: string;
+  color: "error" | "warning" | "info" | "success";
+} {
   if (!pw) return { score: 0, label: "", color: "error" };
+
   let score = 0;
-  if (pw.length >= 8)  score++;
+  if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
   if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
 
   const map = [
-    { label: "",        color: "error"   },
-    { label: "Weak",    color: "error"   },
-    { label: "Fair",    color: "warning" },
-    { label: "Good",    color: "info"    },
-    { label: "Strong",  color: "success" },
+    { label: "", color: "error" },
+    { label: "Weak", color: "error" },
+    { label: "Fair", color: "warning" },
+    { label: "Good", color: "info" },
+    { label: "Strong", color: "success" },
   ] as const;
 
   return { score, ...map[score] };
@@ -36,17 +41,28 @@ function getStrength(pw: string): { score: number; label: string; color: "error"
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [email, setEmail]       = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm]   = useState("");
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const strength = useMemo(() => getStrength(password), [password]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
 
     if (password !== confirm) {
       setError("Passwords do not match.");
@@ -59,14 +75,20 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
       });
 
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error ?? "Something went wrong.");
       } else {
@@ -92,11 +114,10 @@ export default function RegisterPage() {
       }}
     >
       <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 420 }}>
-
-        {/* Header */}
         <Typography variant="h5" fontWeight={700} mb={0.5}>
           Create account
         </Typography>
+
         <Typography variant="body2" color="text.secondary" mb={3}>
           Already have an account?{" "}
           <Link href="/login" style={{ color: "inherit", fontWeight: 500 }}>
@@ -104,15 +125,24 @@ export default function RegisterPage() {
           </Link>
         </Typography>
 
-        {/* Error */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
-        {/* Form */}
         <Box component="form" onSubmit={handleSubmit} noValidate>
+          <TextField
+            label="Username"
+            type="text"
+            fullWidth
+            required
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
           <TextField
             label="Email"
             type="email"
@@ -124,7 +154,6 @@ export default function RegisterPage() {
             sx={{ mb: 2 }}
           />
 
-          {/* Password + strength meter */}
           <TextField
             label="Password"
             type="password"
@@ -133,9 +162,12 @@ export default function RegisterPage() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            helperText={password ? `Strength: ${strength.label}` : "Min. 8 characters"}
+            helperText={
+              password ? `Strength: ${strength.label}` : "Min. 8 characters"
+            }
             sx={{ mb: 0.5 }}
           />
+
           {password && (
             <LinearProgress
               variant="determinate"
@@ -144,6 +176,7 @@ export default function RegisterPage() {
               sx={{ mb: 2, borderRadius: 1, height: 4 }}
             />
           )}
+
           {!password && <Box sx={{ mb: 2 }} />}
 
           <TextField
