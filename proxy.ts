@@ -29,7 +29,7 @@ export async function proxy(req: NextRequest) {
 
   if (isAuthOnly && hasSessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/app/dashboard";
     return NextResponse.redirect(url);
   }
 
