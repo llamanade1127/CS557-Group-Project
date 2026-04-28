@@ -92,7 +92,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error ?? "Something went wrong.");
       } else {
-        router.push("/dashboard");
+        router.push("/app/dashboard");
         router.refresh();
       }
     } catch {
