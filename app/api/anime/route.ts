@@ -60,18 +60,16 @@ export async function POST(req: Request) {
       });
     }
 
-    const anime = await prisma.anime.upsert({
-      where: {
-        title_release_year: { title, release_year },
-      },
-      update: { genre, episodes, description },
-      create: { title, genre, episodes, release_year, description },
+    const anime = await prisma.anime.create({
+      data: { title, genre, episodes, release_year, description },
     });
 
     return new Response(JSON.stringify(anime), { status: 201 });
   } catch (err: unknown) {
+    if (err instanceof Error && (err as any).code === "P2002") {
+      return new Response(JSON.stringify({ error: "This anime already exists." }), { status: 409 });
+    }
     if (err instanceof Error) {
-      console.error(err.message);
       return new Response(JSON.stringify({ error: err.message }), { status: 500 });
     }
     return new Response(JSON.stringify({ error: "Unknown error" }), { status: 500 });

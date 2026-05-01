@@ -94,7 +94,7 @@ export default function AddAnime() {
           <Stack spacing={2.5}>
             <TextField
               name="title"
-              label="Title"
+              placeholder="Title"
               value={form.title}
               onChange={handleChange}
               required
@@ -103,7 +103,7 @@ export default function AddAnime() {
 
             <TextField
               name="genre"
-              label="Genre"
+              placeholder="Genre"
               value={form.genre}
               onChange={handleChange}
               required
@@ -113,7 +113,7 @@ export default function AddAnime() {
             <Stack direction="row" spacing={2}>
               <TextField
                 name="episodes"
-                label="Episodes"
+                placeholder="Episodes"
                 type="number"
                 value={form.episodes}
                 onChange={handleChange}
@@ -124,7 +124,7 @@ export default function AddAnime() {
 
               <TextField
                 name="release_year"
-                label="Release Year"
+                placeholder="Release Year"
                 type="number"
                 value={form.release_year}
                 onChange={handleChange}
@@ -136,7 +136,7 @@ export default function AddAnime() {
 
             <TextField
               name="description"
-              label="Description"
+              placeholder="Description"
               value={form.description}
               onChange={handleChange}
               multiline
