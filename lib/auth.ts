@@ -44,7 +44,8 @@ export async function createSession(userId: number): Promise<string> {
 }
 
 export interface SessionUser {
-  id: number;
+  user_id: number;
+  username: string;
   email: string;
 }
 
@@ -52,7 +53,7 @@ export async function getSessionUser(raw: string): Promise<SessionUser | null> {
   const session = await prisma.session.findUnique({
     where: { tokenHash: hashToken(raw) },
     include: {
-      user: { select: { id: true, email: true } },
+      user: { select: { user_id: true, email: true, username: true } },
     },
   });
 
