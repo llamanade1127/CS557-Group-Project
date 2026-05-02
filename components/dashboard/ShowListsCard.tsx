@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import {
   Card, CardContent, Typography, Divider,
   Table, TableHead, TableBody, TableRow, TableCell,
-  CircularProgress,
+  CircularProgress, Button, Box,
 } from "@mui/material";
+import Link from "next/link";
 
 type Anime = {
   anime_id: number;
@@ -13,7 +14,6 @@ type Anime = {
   genre: string;
   episodes: number;
   release_year: number;
-  description: string;
 };
 
 export default function ShowsListCard() {
@@ -25,7 +25,7 @@ export default function ShowsListCard() {
     fetch("/api/anime")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setShows(data);
+        if (Array.isArray(data)) setShows(data.slice(0, 5)); // preview: first 5
         else setError("Failed to load shows.");
       })
       .catch(() => setError("Network error."))
@@ -35,9 +35,14 @@ export default function ShowsListCard() {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Typography variant="subtitle1" fontWeight={700}>
-          Shows
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="subtitle1" fontWeight={700}>
+            Shows
+          </Typography>
+          <Button component={Link} href="/app/anime" size="small">
+            View All
+          </Button>
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
