@@ -1,0 +1,94 @@
+-- CreateTable
+CREATE TABLE `Role` (
+    `role_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `role_name` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `Role_role_name_key`(`role_name`),
+    PRIMARY KEY (`role_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `User` (
+    `user_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `password` VARCHAR(191) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `role_id` INTEGER NOT NULL,
+
+    UNIQUE INDEX `User_username_key`(`username`),
+    UNIQUE INDEX `User_email_key`(`email`),
+    PRIMARY KEY (`user_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Session` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `tokenHash` VARCHAR(191) NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Session_tokenHash_key`(`tokenHash`),
+    INDEX `Session_userId_idx`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Anime` (
+    `anime_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `title` VARCHAR(191) NOT NULL,
+    `genre` VARCHAR(191) NOT NULL,
+    `episodes` INTEGER NOT NULL,
+    `release_year` INTEGER NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `Anime_title_key`(`title`),
+    UNIQUE INDEX `Anime_title_release_year_key`(`title`, `release_year`),
+    PRIMARY KEY (`anime_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Watchlist` (
+    `watchlist_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `status` ENUM('PLAN_TO_WATCH', 'WATCHING', 'COMPLETED', 'DROPPED', 'ON_HOLD') NOT NULL,
+
+    INDEX `Watchlist_user_id_idx`(`user_id`),
+    INDEX `Watchlist_anime_id_idx`(`anime_id`),
+    UNIQUE INDEX `Watchlist_user_id_anime_id_key`(`user_id`, `anime_id`),
+    PRIMARY KEY (`watchlist_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `User_Rating` (
+    `rating_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `anime_id` INTEGER NOT NULL,
+    `rating_score` INTEGER NOT NULL,
+    `rated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `User_Rating_user_id_idx`(`user_id`),
+    INDEX `User_Rating_anime_id_idx`(`anime_id`),
+    UNIQUE INDEX `User_Rating_user_id_anime_id_key`(`user_id`, `anime_id`),
+    PRIMARY KEY (`rating_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `User` ADD CONSTRAINT `User_role_id_fkey` FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Session` ADD CONSTRAINT `Session_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Watchlist` ADD CONSTRAINT `Watchlist_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Watchlist` ADD CONSTRAINT `Watchlist_anime_id_fkey` FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `User_Rating` ADD CONSTRAINT `User_Rating_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `User_Rating` ADD CONSTRAINT `User_Rating_anime_id_fkey` FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE ON UPDATE CASCADE;
