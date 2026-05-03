@@ -1,10 +1,20 @@
-import { PrismaClient } from "../app/generated/prisma";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import { hashPassword } from "../lib/auth"; // adjust path if needed
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "../app/generated/prisma/client";
+import { hashPassword } from "../lib/auth";
+
+const adapter = new PrismaMariaDb({
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  connectionLimit: 5,
+  allowPublicKeyRetrieval: true,
+});
+
 const prisma = new PrismaClient({ adapter });
-
 const animeList = [
   { title: "Attack on Titan",                genre: "Action",     episodes: 87,   release_year: 2013, description: "Humanity fights Titans." },
   { title: "Death Note",                      genre: "Thriller",   episodes: 37,   release_year: 2006, description: "A notebook that kills." },
