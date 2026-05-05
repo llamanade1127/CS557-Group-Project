@@ -34,8 +34,15 @@ export async function GET(req: Request) {
 
     // 3. Query Jikan for additional results
     const jikanRes = await fetch(
-      `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=10`
+      `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=10`,
+      {
+        headers: {
+          "User-Agent": "anime-watchlist-app/1.0"
+        }
+      }
     );
+
+    console.log("Jikan status: " + jikanRes.status);
     const jikanData = await jikanRes.json();
 
     const apiShows: JikanAnime[] = jikanData.data ?? [];
