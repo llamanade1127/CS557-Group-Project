@@ -95,6 +95,63 @@ ALTER TABLE `User_Rating` ADD CONSTRAINT `User_Rating_user_id_fkey` FOREIGN KEY 
 ALTER TABLE `User_Rating` ADD CONSTRAINT `User_Rating_anime_id_fkey` FOREIGN KEY (`anime_id`) REFERENCES `Anime`(`anime_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- END AUTOGENERATION
+-- START DEFAULT VALUES -- 
+
+-- Roles
+INSERT INTO Role (role_id, role_name) VALUES
+  (1, 'USER'),
+  (2, 'ADMIN')
+ON DUPLICATE KEY UPDATE role_name = role_name;
+
+-- Anime
+INSERT INTO Anime (title, genre, episodes, release_year, description) VALUES
+  ('Attack on Titan',                 'Action',     87,   2013, 'Humanity fights Titans.'),
+  ('Death Note',                      'Thriller',   37,   2006, 'A notebook that kills.'),
+  ('Fullmetal Alchemist: Brotherhood','Adventure',  64,   2009, 'Alchemy and sacrifice.'),
+  ('Demon Slayer',                    'Action',     55,   2019, 'Demon hunting story.'),
+  ('Jujutsu Kaisen',                  'Action',     47,   2020, 'Curses and sorcery.'),
+  ('Naruto',                          'Adventure',  220,  2002, 'A ninja''s journey.'),
+  ('Naruto Shippuden',                'Adventure',  500,  2007, 'Continuation of Naruto.'),
+  ('One Piece',                       'Adventure',  1000, 1999, 'Pirates seeking treasure.'),
+  ('Bleach',                          'Action',     366,  2004, 'Soul reapers.'),
+  ('Tokyo Ghoul',                     'Dark',       48,   2014, 'Half-ghoul story.'),
+  ('Chainsaw Man',                    'Action',     12,   2022, 'Devils and chaos.'),
+  ('Spy x Family',                    'Comedy',     25,   2022, 'Fake family espionage.'),
+  ('My Hero Academia',                'Superhero',  138,  2016, 'Heroes in training.'),
+  ('Steins;Gate',                     'Sci-Fi',     24,   2011, 'Time travel thriller.'),
+  ('Re:Zero',                         'Fantasy',    50,   2016, 'Death loop fantasy.'),
+  ('Vinland Saga',                    'Historical', 48,   2019, 'Viking revenge story.'),
+  ('Frieren: Beyond Journey''s End',  'Fantasy',    28,   2023, 'Life after the hero.'),
+  ('Mob Psycho 100',                  'Action',     37,   2016, 'Psychic powers.'),
+  ('Code Geass',                      'Mecha',      50,   2006, 'Rebellion and strategy.'),
+  ('Sword Art Online',                'Isekai',     96,   2012, 'Trapped in a game.')
+ON DUPLICATE KEY UPDATE title = title;
+
+-- Test user (password is 'password123')
+INSERT INTO User (username, email, password, role_id) VALUES
+  ('testuser', 'test@example.com', '$2b$12$PLACEHOLDER_REPLACE_WITH_REAL_HASH', 1)
+ON DUPLICATE KEY UPDATE username = username;
+
+-- Default watchlist for test user
+INSERT INTO Watchlist (user_id, anime_id, status)
+SELECT
+  (SELECT user_id FROM User WHERE username = 'testuser'),
+  a.anime_id,
+  v.status
+FROM Anime a
+JOIN (VALUES
+  ROW('Attack on Titan',                  'COMPLETED'),
+  ROW('Death Note',                       'COMPLETED'),
+  ROW('Fullmetal Alchemist: Brotherhood', 'COMPLETED'),
+  ROW('Jujutsu Kaisen',                   'WATCHING'),
+  ROW('Demon Slayer',                     'WATCHING'),
+  ROW('Naruto',                           'COMPLETED'),
+  ROW('Naruto Shippuden',                 'PLAN_TO_WATCH'),
+  ROW('One Piece',                        'ON_HOLD'),
+  ROW('Steins;Gate',                      'COMPLETED'),
+  ROW('Vinland Saga',                     'PLAN_TO_WATCH')
+) AS v(title, status) ON a.title = v.title
+ON DUPLICATE KEY UPDATE status = status;
 
 /*
 * Views
