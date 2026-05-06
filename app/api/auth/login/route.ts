@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { pool } from "@/lib/db";
 import { verifyPassword, createSession } from "@/lib/auth";
+import { RowDataPacket } from "mysql2";
 
-/**
- * Used to prevent timing attacks.
- */
 const DUMMY_HASH =
   "$2b$12$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+
+type UserRow = RowDataPacket & {
+  user_id: number;
+  username: string;
+  password: string;
+  role_id: number;
+};
 
 export async function POST(req: NextRequest) {
   try {
     const { username, password } = await req.json();
-
-
-
     const cleanUsername = username?.trim();
 
     if (!cleanUsername || !password) {
@@ -24,9 +26,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { username: cleanUsername },
-    });
+    const [rows] = await pool.execute<UserRow[]>(
+      "SELECT * FROM User WHERE username = ?",
+      [cleanUsername]
+    );
+
+    const user = rows[0] ?? null;
 
     const valid = user
       ? await verifyPassword(password, user.password)
@@ -40,12 +45,11 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await createSession(user.user_id);
-
     (await cookies()).set("session", raw, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
 

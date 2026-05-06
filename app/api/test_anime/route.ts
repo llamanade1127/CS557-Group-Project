@@ -1,7 +1,6 @@
 // app/api/test_anime/route.ts
-import { prisma } from '@/lib/prisma';
-
+import {pool} from "@/lib/db"
 export async function GET() {
-    const allAnime = await prisma.anime.findMany(); // fetch all entries
-    return new Response(JSON.stringify(allAnime), { status: 200 });
+    const [rows]= await pool.execute("SELECT * FROM Anime"); // fetch all entries
+    return new Response(JSON.stringify(rows), { status: 200 });
 }

@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { pool } from "@/lib/db";
+import { ResultSetHeader } from "mysql2";
 
 type JikanAnime = {
   title: string;
@@ -11,65 +12,60 @@ type JikanAnime = {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";
-  // This determines how many shows we get from the DB before having to query the API
-  // If we have less than this ammount, we query the API
-  const maxDb = 5;
+
   if (!q) {
     return new Response(JSON.stringify({ error: "Missing query param: q" }), { status: 400 });
   }
 
   try {
     // 1. Search our DB first
-    const dbResults = await prisma.anime.findMany({
-      where: {
-        title: { contains: q.toLowerCase()  },
-      },
-      orderBy: { title: "asc" },
-    });
+    const [dbResults] = await pool.execute(
+      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      [`%${q.toLowerCase()}%`]
+    );
+
+    const results = dbResults as any[];
 
     // 2. If we have enough, skip the external API
-    if (dbResults.length >= 5) {
-      return new Response(JSON.stringify(dbResults), { status: 200 });
+    if (results.length >= 5) {
+      return new Response(JSON.stringify(results), { status: 200 });
     }
 
     // 3. Query Jikan for additional results
     const jikanRes = await fetch(
       `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=10`,
-      {
-        headers: {
-          "User-Agent": "anime-watchlist-app/1.0"
-        }
-      }
+      { headers: { "User-Agent": "anime-watchlist-app/1.0" } }
     );
 
     console.log("Jikan status: " + jikanRes.status);
-    const jikanData = await jikanRes.json();
 
-    const apiShows: JikanAnime[] = jikanData.data ?? [];
-
-    // 4. Upsert shows that don't exist yet (matched by title + release_year)
-    for (const anime of apiShows) {
-      const release_year = anime.year || 0;
-      await prisma.anime.upsert({
-        where: { title_release_year: { title: anime.title, release_year } },
-        update: {},
-        create: {
-          title: anime.title,
-          genre: anime.genres?.map((g) => g.name).join(", ") || "Unknown",
-          episodes: anime.episodes || 0,
-          release_year,
-          description: anime.synopsis || "",
-        },
-      });
+    if (!jikanRes.ok || !jikanRes.headers.get("content-type")?.includes("application/json")) {
+      return new Response(JSON.stringify(results), { status: 200 });
     }
 
-    // 5. Re-query DB to get the merged, de-duped list
-    const merged = await prisma.anime.findMany({
-      where: {
-        title: { contains: q.toLowerCase() },
-      },
-      orderBy: { title: "asc" },
-    });
+    const jikanData = await jikanRes.json();
+    const apiShows: JikanAnime[] = jikanData.data ?? [];
+
+    // 4. Upsert shows that don't exist yet
+    for (const anime of apiShows) {
+      const release_year = anime.year || 0;
+      const genre = anime.genres?.map((g) => g.name).join(", ") || "Unknown";
+      const description = anime.synopsis || "";
+      const episodes = anime.episodes || 0;
+
+      await pool.execute(
+        `INSERT INTO Anime (title, genre, episodes, release_year, description)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE title = title`,
+        [anime.title, genre, episodes, release_year, description]
+      );
+    }
+
+    // 5. Re-query DB to get merged de-duped list
+    const [merged] = await pool.execute(
+      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      [`%${q.toLowerCase()}%`]
+    );
 
     return new Response(JSON.stringify(merged), { status: 200 });
 
