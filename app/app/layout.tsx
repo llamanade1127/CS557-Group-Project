@@ -70,7 +70,7 @@ export default function AppLayout({
             <Button onClick={() => router.push("/app/shows")} color="inherit">
               Shows
             </Button>
-            <Button onClick={() => router.push("/app/watchlist")} color="inherit">
+            <Button onClick={() => router.push("/watchlist_page")} color="inherit">
               Watchlist
             </Button>
             <Button onClick={logout} variant="outlined" size="small" color="inherit">
