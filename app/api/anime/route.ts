@@ -1,12 +1,12 @@
-import { prisma } from "@/lib/prisma";
+import {pool} from "@/lib/db"
+import {ResultSetHeader} from "mysql2";
 
 export async function GET() {
   try {
-    const anime = await prisma.anime.findMany({
-      orderBy: { title: "asc" },
-    });
+    const [rows] = await pool.execute("SELECT * FROM Anime ORDER BY title ASC");
 
-    return new Response(JSON.stringify(anime), { status: 200 });
+
+    return new Response(JSON.stringify(rows), { status: 200 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error(message);
@@ -26,17 +26,15 @@ export async function POST(req: Request) {
       });
     }
 
-    const anime = await prisma.anime.create({
-      data: { title, genre, episodes, release_year, description },
-    });
+    const [result] = await pool.execute<ResultSetHeader>(
+      "INSERT INTO Anime (title, genre, episodes, release_year, description) VALUES (?, ?, ?, ?, ?)",
+      [title, genre, episodes, release_year, description ?? ""]
+    );
 
-    return new Response(JSON.stringify(anime), { status: 201 });
+    return new Response(JSON.stringify({anime_id: result.insertId, title, genre, episodes, release_year, description}), { status: 201 });
   } catch (err: unknown) {
-    if (err instanceof Error && (err as any).code === "P2002") {
+    if (err instanceof Error && (err as any).code === "ER_DUP_ENTRY") {
       return new Response(JSON.stringify({ error: "This anime already exists." }), { status: 409 });
-    }
-    if (err instanceof Error) {
-      return new Response(JSON.stringify({ error: err.message }), { status: 500 });
     }
     return new Response(JSON.stringify({ error: "Unknown error" }), { status: 500 });
   }

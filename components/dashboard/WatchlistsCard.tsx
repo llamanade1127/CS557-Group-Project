@@ -11,11 +11,9 @@ import Link from "next/link";
 type WatchlistEntry = {
   watchlist_id: number;
   status: string;
-  anime: {
-    title: string;
-    genre: string;
-    episodes: number;
-  };
+  title: string;
+  genre: string;
+  episodes: string;
 };
 
 const STATUS_COLORS: Record<string, "default" | "primary" | "success" | "error" | "warning"> = {
@@ -78,9 +76,9 @@ export default function WatchlistCard() {
             <TableBody>
               {entries.map((entry) => (
                 <TableRow key={entry.watchlist_id} hover>
-                  <TableCell>{entry.anime.title}</TableCell>
-                  <TableCell>{entry.anime.genre}</TableCell>
-                  <TableCell align="center">{entry.anime.episodes}</TableCell>
+                  <TableCell>{entry.title}</TableCell>
+                  <TableCell>{entry.genre}</TableCell>
+                  <TableCell align="center">{entry.episodes}</TableCell>
                   <TableCell align="center">
                     <Chip
                       label={entry.status.replace(/_/g, " ")}
