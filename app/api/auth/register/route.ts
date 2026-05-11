@@ -1,13 +1,12 @@
-// app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { pool } from "@/lib/db";
 import { hashPassword, createSession } from "@/lib/auth";
+import { RowDataPacket } from "mysql2";
 
 export async function POST(req: NextRequest) {
   try {
     const { username, email, password } = await req.json();
-
     const cleanUsername = username?.trim();
     const cleanEmail = email?.toLowerCase().trim();
 
@@ -32,29 +31,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existing = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: cleanEmail }, { username: cleanUsername }],
-      },
-    });
+    const [existing] = await pool.execute<RowDataPacket[]>(
+      "SELECT user_id FROM User WHERE email = ? OR username = ? LIMIT 1",
+      [cleanEmail, cleanUsername]
+    );
 
-    if (existing) {
+    if ((existing as RowDataPacket[]).length > 0) {
       return NextResponse.json(
         { error: "An account with that email or username already exists." },
         { status: 409 }
       );
     }
 
-    const user = await prisma.user.create({
-      data: {
-        username: cleanUsername,
-        email: cleanEmail,
-        password: await hashPassword(password),
-        role_id: 1,
-      },
-    });
+    const hashed = await hashPassword(password);
+    const [result] = await pool.execute<RowDataPacket[]>(
+      "INSERT INTO User (username, email, password, role_id) VALUES (?, ?, ?, 1)",
+      [cleanUsername, cleanEmail, hashed]
+    );
 
-    const raw = await createSession(user.user_id);
+    const insertId = (result as any).insertId;
+    const raw = await createSession(insertId);
 
     (await cookies()).set("session", raw, {
       httpOnly: true,
@@ -67,7 +63,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[register]", err);
-
     return NextResponse.json(
       { error: "Server error. Please try again." },
       { status: 500 }

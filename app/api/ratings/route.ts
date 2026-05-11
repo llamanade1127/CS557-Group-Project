@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { pool } from "@/lib/db";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
 
-// POST: Create or Update Rating
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { userId, animeId, ratingScore } = body;
 
-    // Validation
     if (!userId || !animeId || !ratingScore) {
-      return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
     if (ratingScore < 1 || ratingScore > 5) {
@@ -21,94 +17,57 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    // TODO: This would be a good place for a procedure
+    const [existing] = await pool.execute<RowDataPacket[]>(
+      "SELECT rating_id FROM User_Rating WHERE user_id = ? AND anime_id = ?",
+      [userId, animeId]
+    );
 
-    // Check if rating already exists
-    const existingRating = await prisma.user_Rating.findUnique({
-      where: {
-        user_id_anime_id: {
-          user_id: userId,
-          anime_id: animeId,
-        },
-      },
-    });
-
-    let rating;
-
-    if (existingRating) {
-      // Update existing rating
-      rating = await prisma.user_Rating.update({
-        where: {
-          user_id_anime_id: {
-            user_id: userId,
-            anime_id: animeId,
-          },
-        },
-        data: {
-          rating_score: ratingScore,
-        },
-      });
+    if ((existing as RowDataPacket[]).length > 0) {
+      await pool.execute<ResultSetHeader>(
+        "UPDATE User_Rating SET rating_score = ? WHERE user_id = ? AND anime_id = ?",
+        [ratingScore, userId, animeId]
+      );
     } else {
-      // Create new rating
-      rating = await prisma.user_Rating.create({
-        data: {
-          user_id: userId,
-          anime_id: animeId,
-          rating_score: ratingScore,
-        },
-      });
+      await pool.execute<ResultSetHeader>(
+        "INSERT INTO User_Rating (user_id, anime_id, rating_score) VALUES (?, ?, ?)",
+        [userId, animeId, ratingScore]
+      );
     }
 
-    return NextResponse.json({ success: true, rating });
-
+    return NextResponse.json({ success: true, rating: { userId, animeId, ratingScore } });
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
-// GET: Get average rating for an anime
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const animeId = Number(searchParams.get("animeId"));
 
     if (!animeId) {
-      return NextResponse.json(
-        { error: "animeId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "animeId is required" }, { status: 400 });
     }
 
-    // Get ratings
-    const ratings = await prisma.user_Rating.findMany({
-      where: {
-        anime_id: animeId,
-      },
-    });
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      "SELECT rating_score FROM User_Rating WHERE anime_id = ?",
+      [animeId]
+    );
+
+    const ratings = rows as RowDataPacket[];
 
     if (ratings.length === 0) {
-      return NextResponse.json({
-        average: 0,
-        count: 0,
-      });
+      return NextResponse.json({ average: 0, count: 0 });
     }
 
     const total = ratings.reduce((sum, r) => sum + r.rating_score, 0);
     const average = total / ratings.length;
 
-    return NextResponse.json({
-      average,
-      count: ratings.length,
-    });
-
+    return NextResponse.json({ average, count: ratings.length });
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
