@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type Anime = {
   anime_id: number;
   title: string;
+  cover_image: string | null;
   genre: string | null;
   episodes: number | null;
   release_year: number | null;
@@ -113,6 +114,7 @@ export default function Home() {
               }}
             >
               <h2>{anime.title}</h2>
+            <img src={anime.cover_image || "/placeholder.jpg"} alt={anime.title} style={{ width: '100%', height: 'auto' }} />
 
               <p>
                 <strong>Genre:</strong> {anime.genre || "N/A"}

@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, genre, episodes, release_year, description } = body;
+    const { title, cover_image, genre, episodes, release_year, description } = body;
 
     if (!title || !genre || !episodes || !release_year) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {

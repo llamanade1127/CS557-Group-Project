@@ -58,6 +58,7 @@ model Session {
 model Anime {
   anime_id     Int    @id @default(autoincrement())
   title        String @unique
+  cover_image  String
   genre        String
   episodes     Int
   release_year Int

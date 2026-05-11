@@ -1,95 +1,107 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card, CardContent, Typography, Divider,
-  Table, TableHead, TableBody, TableRow, TableCell,
-  CircularProgress, Box, Button, Chip,
-} from "@mui/material";
+import { Card, CardContent, Typography, Divider, CircularProgress, Box, Chip } from "@mui/material";
 import Link from "next/link";
 
-type WatchlistEntry = {
-  watchlist_id: number;
-  status: string;
+interface WatchlistItem {
+  id: string;
   title: string;
-  genre: string;
-  episodes: string;
-};
-
-const STATUS_COLORS: Record<string, "default" | "primary" | "success" | "error" | "warning"> = {
-  WATCHING: "primary",
-  COMPLETED: "success",
-  DROPPED: "error",
-  ON_HOLD: "warning",
-  PLAN_TO_WATCH: "default",
-};
+  status: string;
+  episodes: number;
+  release_year: number;
+}
 
 export default function WatchlistCard() {
-  const [entries, setEntries] = useState<WatchlistEntry[]>([]);
+  const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/watchlist")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setEntries(data.slice(0, 5));
-        else setError("Failed to load watchlist.");
-      })
-      .catch(() => setError("Network error."))
-      .finally(() => setLoading(false));
+    async function fetchWatchlist() {
+      try {
+        const response = await fetch("/api/watchlist");
+        const data = await response.json();
+        
+        if (!response.ok) {
+          console.warn("Watchlist fetch error:", data.error);
+          setError(null); // Don't show error for unauthenticated users in dashboard
+          return;
+        }
+        
+        setItems(data.slice(0, 5)); // Show first 5 items
+      } catch (err) {
+        console.error("Watchlist fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchWatchlist();
   }, []);
+
+  const getStatusColor = (status: string): "error" | "warning" | "success" | "info" => {
+    switch (status) {
+      case "COMPLETED":
+        return "success";
+      case "WATCHING":
+        return "info";
+      case "PLAN_TO_WATCH":
+        return "warning";
+      default:
+        return "error";
+    }
+  };
 
   return (
     <Card variant="outlined">
       <CardContent>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="subtitle1" fontWeight={700}>
-            Your Watchlist
-          </Typography>
-          <Button component={Link} href="/watchlist" size="small">
-            View All
-          </Button>
-        </Box>
+        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+          Your Watchlist
+        </Typography>
 
         <Divider sx={{ my: 2 }} />
 
-        {loading && <CircularProgress size={24} />}
-        {error && <Typography color="error" variant="body2">{error}</Typography>}
-
-        {!loading && !error && entries.length === 0 && (
-          <Typography color="text.secondary" variant="body2">
-            Your watchlist is empty.
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : error ? (
+          <Typography color="error" variant="body2">
+            {error}
           </Typography>
-        )}
-
-        {!loading && entries.length > 0 && (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell><strong>Title</strong></TableCell>
-                <TableCell><strong>Genre</strong></TableCell>
-                <TableCell align="center"><strong>Episodes</strong></TableCell>
-                <TableCell align="center"><strong>Status</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {entries.map((entry) => (
-                <TableRow key={entry.watchlist_id} hover>
-                  <TableCell>{entry.title}</TableCell>
-                  <TableCell>{entry.genre}</TableCell>
-                  <TableCell align="center">{entry.episodes}</TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={entry.status.replace(/_/g, " ")}
-                      color={STATUS_COLORS[entry.status] ?? "default"}
-                      size="small"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        ) : items.length === 0 ? (
+          <Typography color="text.secondary" variant="body2">
+            Your watchlist is empty.{" "}
+            <Link href="/search" style={{ color: "inherit", textDecoration: "underline" }}>
+              Add some anime
+            </Link>
+          </Typography>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {items.filter((item) => item.status !== "DROPPED").map((item) => (
+              <Box key={item.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, flex: 1 }}>
+                  {item.title}
+                </Typography>
+                <Chip
+                  label={item.status.replace(/_/g, " ")}
+                  size="small"
+                  color={getStatusColor(item.status)}
+                  variant="outlined"
+                />
+              </Box>
+            ))}
+            <Link href="/app/dashboard" style={{ textDecoration: "none" }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "primary.main", fontWeight: 500, mt: 1, cursor: "pointer" }}
+              >
+              <Link  href="/watchlist_page">
+              View All -
+              </Link>
+              </Typography>
+            </Link>
+          </Box>
         )}
       </CardContent>
     </Card>
