@@ -27,7 +27,6 @@ export async function GET(req: NextRequest)
           select: {
             anime_id: true,
             title: true,
-            cover_image: true,
             genre: true,
             episodes: true,
             release_year: true,
@@ -43,7 +42,6 @@ export async function GET(req: NextRequest)
       id: entry.watchlist_id.toString(),
       anime_id: entry.anime.anime_id,
       title: entry.anime.title,
-      cover_image: entry.anime.cover_image,
       genre: entry.anime.genre,
       episodes: entry.anime.episodes,
       release_year: entry.anime.release_year,
