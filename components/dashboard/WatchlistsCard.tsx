@@ -96,7 +96,7 @@ export default function WatchlistCard() {
                 variant="body2"
                 sx={{ color: "primary.main", fontWeight: 500, mt: 1, cursor: "pointer" }}
               >
-              <Link  href="/watchlist_page">
+              <Link  href="/app/watchlists">
               View All -
               </Link>
               </Typography>

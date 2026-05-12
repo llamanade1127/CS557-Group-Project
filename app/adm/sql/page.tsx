@@ -128,7 +128,7 @@ export default function AdminSqlPage() {
         SQL Console
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={3}>
-        Supports multiple statements and transactions. Runs directly against the database — use with care.
+        All queries run directly against the database. Use transcations if needed
       </Typography>
 
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
