@@ -33,10 +33,11 @@ export async function POST(req: Request) {
     }
 
     const [existing] = await pool.execute<RowDataPacket[]>(
-      "SELECT rating_id FROM User_Rating WHERE user_id = ? AND anime_id = ?",
-      [user.user_id, animeId]
+      "CALL proc_update_user_rating(?, ?, ?)",
+      [ratingScore, user.user_id, animeId]
     );
 
+    /*
     if (existing.length > 0) {
       await pool.execute<ResultSetHeader>(
         "UPDATE User_Rating SET rating_score = ? WHERE user_id = ? AND anime_id = ?",
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
         "INSERT INTO User_Rating (user_id, anime_id, rating_score) VALUES (?, ?, ?)",
         [user.user_id, animeId, ratingScore]
       );
-    }
+    }*/
 
     return NextResponse.json({
       success: true,
