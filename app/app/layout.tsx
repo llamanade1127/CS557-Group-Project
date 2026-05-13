@@ -14,25 +14,34 @@ import {
 
 export default function AppLayout({
   children,
+  initialUser,
 }: {
   children: React.ReactNode;
+  initialUser: any;
 }) {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [user, setUser] = useState(initialUser);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then(({ user }) => {
-        if (!user) router.replace("/login");
+        if (!user) router.replace("/app/publicHomepage");
+        else 
+        {
+          setUser(user); 
+        }
       })
-      .catch(() => router.replace("/login"))
+      .catch(() => router.replace("/app/publicHomepage"))
       .finally(() => setCheckingAuth(false));
+      
   }, [router]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/login");
+    setUser(initialUser);
+    router.replace("/app/publicHomepage");
     router.refresh();
   }
 
@@ -63,19 +72,30 @@ export default function AppLayout({
             🎌 Anime Watchlist
           </Typography>
 
-          <Stack direction="row" spacing={1}>
-            <Button onClick={() => router.push("/app/dashboard")} color="inherit">
-              Dashboard
-            </Button>
-            <Button onClick={() => router.push("/app/anime")} color="inherit">
-              Shows
-            </Button>
-            <Button onClick={() => router.push("/app/watchlist_page")} color="inherit">
-              Watchlist
-            </Button>
-            <Button onClick={logout} variant="outlined" size="small" color="inherit">
-              Sign out
-            </Button>
+         <Stack direction="row" spacing={1}>
+            {user && (
+              <>
+                <Button onClick={() => router.push("/app/dashboard")} color="inherit">
+                  Dashboard
+                </Button>
+                <Button onClick={() => router.push("/app/anime")} color="inherit">
+                  Shows
+                </Button>
+                <Button onClick={() => router.push("/app/watchlist_page")} color="inherit">
+                  Watchlist
+                </Button>
+              </>
+            )}
+
+            {user ? (
+              <Button onClick={logout} variant="outlined" size="small" color="inherit">
+                Sign out
+              </Button>
+            ) : (
+              <Button onClick={() => router.push("/login")} variant="outlined" size="small" color="inherit">
+                Sign in
+              </Button>
+            )}
           </Stack>
         </Toolbar>
       </AppBar>
