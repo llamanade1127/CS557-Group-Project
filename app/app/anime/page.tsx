@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import {
   Box, Typography, TextField, InputAdornment,
@@ -23,6 +24,7 @@ export default function AnimePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [fromApi, setFromApi] = useState(false); // did we hit external API?
+  const router = useRouter();
 
   const fetchShows = useCallback(async (q: string) => {
     setLoading(true);
@@ -128,7 +130,7 @@ export default function AnimePage() {
                 </TableHead>
                 <TableBody>
                   {shows.map((show) => (
-                    <TableRow key={show.anime_id} hover>
+                    <TableRow key={show.anime_id} hover onClick={() => router.push(`/app/anime/${show.anime_id}`)} sx={{ cursor: "pointer" }}>
                       <TableCell>{show.title}</TableCell>
                       <TableCell>{show.genre}</TableCell>
                       <TableCell align="center">{show.episodes || "—"}</TableCell>

@@ -12,19 +12,17 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [user, setUser] = useState<{ username: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then(({ user }) => {
         if (!user) router.replace("/login");
+        else setUser(user);
       })
       .catch(() => router.replace("/login"))
       .finally(() => setCheckingAuth(false));
@@ -32,20 +30,14 @@ export default function AppLayout({
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
     router.replace("/login");
     router.refresh();
   }
 
   if (checkingAuth) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <CircularProgress />
       </Box>
     );
@@ -53,29 +45,35 @@ export default function AppLayout({
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "grey.100" }}>
-      <AppBar
-        position="sticky"
-        elevation={1}
-        sx={{ bgcolor: "#fff", color: "text.primary" }}
-      >
+      <AppBar position="sticky" elevation={1} sx={{ bgcolor: "#fff", color: "text.primary" }}>
         <Toolbar sx={{ justifyContent: "space-between" }}>
           <Typography variant="h6" fontWeight={800}>
-            🎌 Anime Watchlist
+            Anime Watchlist
           </Typography>
 
           <Stack direction="row" spacing={1}>
-            <Button onClick={() => router.push("/app/dashboard")} color="inherit">
-              Dashboard
-            </Button>
-            <Button onClick={() => router.push("/app/shows")} color="inherit">
-              Shows
-            </Button>
-            <Button onClick={() => router.push("/app/watchlists")} color="inherit">
-              Watchlist
-            </Button>
-            <Button onClick={logout} variant="outlined" size="small" color="inherit">
-              Sign out
-            </Button>
+            {user && (
+              <>
+                <Button onClick={() => router.push("/app/dashboard")} color="inherit">
+                  Dashboard
+                </Button>
+                <Button onClick={() => router.push("/app/anime")} color="inherit">
+                  Shows
+                </Button>
+                <Button onClick={() => router.push("/app/watchlists")} color="inherit">
+                  Watchlist
+                </Button>
+              </>
+            )}
+            {user ? (
+              <Button onClick={logout} variant="outlined" size="small" color="inherit">
+                Sign out
+              </Button>
+            ) : (
+              <Button onClick={() => router.push("/login")} variant="outlined" size="small" color="inherit">
+                Sign in
+              </Button>
+            )}
           </Stack>
         </Toolbar>
       </AppBar>

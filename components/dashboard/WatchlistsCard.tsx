@@ -22,14 +22,14 @@ export default function WatchlistCard() {
       try {
         const response = await fetch("/api/watchlist");
         const data = await response.json();
-        
+
         if (!response.ok) {
           console.warn("Watchlist fetch error:", data.error);
-          setError(null); // Don't show error for unauthenticated users in dashboard
+          setError(null);
           return;
         }
-        
-        setItems(data.slice(0, 5)); // Show first 5 items
+
+        setItems(data.slice(0, 5));
       } catch (err) {
         console.error("Watchlist fetch error:", err);
       } finally {
@@ -41,21 +41,17 @@ export default function WatchlistCard() {
 
   const getStatusColor = (status: string): "error" | "warning" | "success" | "info" => {
     switch (status) {
-      case "COMPLETED":
-        return "success";
-      case "WATCHING":
-        return "info";
-      case "PLAN_TO_WATCH":
-        return "warning";
-      default:
-        return "error";
+      case "COMPLETED":    return "success";
+      case "WATCHING":     return "info";
+      case "PLAN_TO_WATCH": return "warning";
+      default:             return "error";
     }
   };
 
   return (
     <Card variant="outlined">
       <CardContent>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
           Your Watchlist
         </Typography>
 
@@ -66,13 +62,11 @@ export default function WatchlistCard() {
             <CircularProgress size={24} />
           </Box>
         ) : error ? (
-          <Typography color="error" variant="body2">
-            {error}
-          </Typography>
+          <Typography color="error" variant="body2">{error}</Typography>
         ) : items.length === 0 ? (
           <Typography color="text.secondary" variant="body2">
             Your watchlist is empty.{" "}
-            <Link href="/search" style={{ color: "inherit", textDecoration: "underline" }}>
+            <Link href="/app/anime" style={{ color: "inherit", textDecoration: "underline" }}>
               Add some anime
             </Link>
           </Typography>
@@ -91,14 +85,9 @@ export default function WatchlistCard() {
                 />
               </Box>
             ))}
-            <Link href="/app/dashboard" style={{ textDecoration: "none" }}>
-              <Typography
-                variant="body2"
-                sx={{ color: "primary.main", fontWeight: 500, mt: 1, cursor: "pointer" }}
-              >
-              <Link  href="/app/watchlists">
-              View All -
-              </Link>
+            <Link href="/app/watchlists" style={{ textDecoration: "none" }}>
+              <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 500, mt: 1 }}>
+                View All
               </Typography>
             </Link>
           </Box>
