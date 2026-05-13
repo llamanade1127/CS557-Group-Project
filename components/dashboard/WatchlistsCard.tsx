@@ -55,7 +55,7 @@ export default function WatchlistCard() {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
           Your Watchlist
         </Typography>
 
@@ -96,7 +96,7 @@ export default function WatchlistCard() {
                 variant="body2"
                 sx={{ color: "primary.main", fontWeight: 500, mt: 1, cursor: "pointer" }}
               >
-              <Link  href="/watchlist_page">
+              <Link  href="/app/watchlist_page">
               View All -
               </Link>
               </Typography>
