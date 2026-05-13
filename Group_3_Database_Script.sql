@@ -174,6 +174,29 @@ LEFT JOIN Anime a ON a.anime_id = w.anime_id;
 * Procedures/Functions
 */
 
+DELIMITER //
+CREATE PROCEDURE proc_update_user_rating (
+	IN new_rating_score INT, 
+    IN user_id_proc INT, 
+    IN anime_id_proc INT
+)
+BEGIN
+	IF EXISTS(
+		SELECT 1
+        FROM User_Rating
+        WHERE user_id = user_id_proc
+          AND anime_id = anime_id_proc	
+		) 
+	THEN
+		UPDATE User_Rating 
+		SET rating_score = new_rating_score
+		WHERE user_id = user_id_proc AND anime_id = anime_id_proc;
+    ELSE 
+		INSERT INTO User_Rating (user_id, anime_id, rating_score) VALUES 
+			(user_id_proc, anime_id_proc, new_rating_score);
+    END IF;
+END //
+DELIMITER ;
 
 /*
 * Cursors
