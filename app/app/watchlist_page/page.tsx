@@ -32,6 +32,7 @@ export default function WatchlistPage()
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [minEpisodes, setMinEpisodes] = useState(0);
 
   useEffect(() => 
  {
@@ -39,7 +40,7 @@ export default function WatchlistPage()
     {
       try 
       {
-        const response = await fetch("/api/watchlist");
+        const response = await fetch(`/api/watchlist?minEpisodes=${minEpisodes}`);
         const data = await response.json();
 
         if (!response.ok) 
@@ -60,7 +61,7 @@ export default function WatchlistPage()
       }
     }
     fetchWatchlist();
-  }, []);
+  }, [minEpisodes]);
 
   const sortedItems = [...items].sort((a, b) => 
   {
@@ -119,7 +120,14 @@ export default function WatchlistPage()
             <option value="watchStatus">Watch Status</option>
           </select>
       </div>
-
+      <label htmlFor="minEpisodes" style={{ marginLeft: "20px", marginRight: "10px", color: "#fff" }}>Min Episodes:</label>
+      <select id="minEpisodes" className="filter-select" value={minEpisodes} onChange={(e) => setMinEpisodes(Number(e.target.value))}>
+        <option value={0}>Any</option>
+        <option value={12}>12+</option>
+        <option value={24}>24+</option>
+        <option value={50}>50+</option>
+        <option value={100}>100+</option>
+      </select>
       {items.length === 0 ? 
       (
         <div className="empty-state">Your watchlist is empty. Browse the shows and add to your watchlist!</div>

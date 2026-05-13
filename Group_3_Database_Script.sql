@@ -202,3 +202,60 @@ DELIMITER ;
 * Cursors
 */
 
+DELIMITER //
+CREATE PROCEDURE filter_watchlist_by_episodes(IN user_id_param INT, IN min_episodes INT)
+BEGIN
+  DECLARE done INT DEFAULT 0;
+  DECLARE v_watchlist_id INT;
+  DECLARE v_anime_id INT;
+  DECLARE v_title VARCHAR(255);
+  DECLARE v_status VARCHAR(50);
+  DECLARE v_genre VARCHAR(255);
+  DECLARE v_episodes INT;
+  DECLARE v_release_year INT;
+  DECLARE v_description TEXT;
+
+  DECLARE watchlist_cursor CURSOR FOR
+    SELECT w.watchlist_id, a.anime_id, a.title, w.status, a.genre, a.episodes, a.release_year, a.description
+    FROM Watchlist w
+    JOIN Anime a ON w.anime_id = a.anime_id
+    WHERE w.user_id = user_id_param;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+  CREATE TEMPORARY TABLE IF NOT EXISTS filtered_watchlist (
+    id INT,
+    anime_id INT,
+    title VARCHAR(255),
+    status VARCHAR(50),
+    genre VARCHAR(255),
+    episodes INT,
+    release_year INT,
+    description TEXT
+  );
+
+  DELETE FROM filtered_watchlist;
+
+  OPEN watchlist_cursor;
+
+  read_loop: LOOP
+    FETCH watchlist_cursor INTO v_watchlist_id, v_anime_id, v_title, v_status, v_genre, v_episodes, v_release_year, v_description;
+
+    IF done = 1 THEN
+      LEAVE read_loop;
+    END IF;
+
+    IF v_episodes >= min_episodes THEN
+      INSERT INTO filtered_watchlist VALUES (v_watchlist_id, v_anime_id, v_title, v_status, v_genre, v_episodes, v_release_year, v_description);
+    END IF;
+
+  END LOOP;
+
+  CLOSE watchlist_cursor;
+
+  SELECT * FROM filtered_watchlist;
+
+  DROP TEMPORARY TABLE filtered_watchlist;
+END //
+DELIMITER ;
+
