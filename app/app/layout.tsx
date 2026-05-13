@@ -84,6 +84,9 @@ export default function AppLayout({
                 <Button onClick={() => router.push("/app/watchlist_page")} color="inherit">
                   Watchlist
                 </Button>
+                <Button onClick={() => router.push("/app/add_show")} color="inherit">
+                  Add Shows
+                </Button>
               </>
             )}
 

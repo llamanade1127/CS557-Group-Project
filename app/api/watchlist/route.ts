@@ -1,3 +1,4 @@
+import { pool } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionUser } from "@/lib/auth";
@@ -19,33 +20,22 @@ export async function GET(req: NextRequest)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const watchlist = await prisma.watchlist.findMany
-    ({
-      where: { user_id: user.user_id },
-      include: {
-        anime: {
-          select: {
-            anime_id: true,
-            title: true,
-            genre: true,
-            episodes: true,
-            release_year: true,
-            description: true,
-          },
-        },
-      },
-      orderBy: { watchlist_id: "desc" },
-    });
+    const { searchParams } = new URL(req.url);
+    const minEpisodes = Number(searchParams.get("minEpisodes") ?? 0);
 
-    const items = watchlist.map((entry) => 
-    ({
-      id: entry.watchlist_id.toString(),
-      anime_id: entry.anime.anime_id,
-      title: entry.anime.title,
-      genre: entry.anime.genre,
-      episodes: entry.anime.episodes,
-      release_year: entry.anime.release_year,
-      description: entry.anime.description,
+    const [results] = await pool.query(
+      "CALL filter_watchlist_by_episodes(?, ?)",
+      [user.user_id, minEpisodes]
+    );
+
+    const items = (results as any[])[0].map((entry: any) => ({
+      id: entry.id.toString(),
+      anime_id: entry.anime_id,
+      title: entry.title,
+      genre: entry.genre,
+      episodes: entry.episodes,
+      release_year: entry.release_year,
+      description: entry.description,
       status: entry.status,
     }));
 
@@ -53,7 +43,7 @@ export async function GET(req: NextRequest)
   } catch (error) 
   {
     console.error("Watchlist fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch watchlist" },{ status: 500 });
+    return NextResponse.json({ error: "Failed to fetch watchlist" }, { status: 500 });
   }
 }
 
