@@ -103,6 +103,7 @@ export default function WatchlistPage()
   if (error) return <div>Error: {error}</div>;
 
   return (
+  <section style={{ backgroundColor: '#482fa0', color:'black' }}>
     <div className="watchlist-container">
       {message && <div className="remove-message">{message}</div>}
 
@@ -156,5 +157,6 @@ export default function WatchlistPage()
         </div>
       )}
     </div>
+  </section>    
   );
 }
