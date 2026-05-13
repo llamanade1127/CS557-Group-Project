@@ -103,60 +103,68 @@ export default function WatchlistPage()
   if (error) return <div>Error: {error}</div>;
 
   return (
-  <section style={{ backgroundColor: '#482fa0', color:'black' }}>
-    <div className="watchlist-container">
-      {message && <div className="remove-message">{message}</div>}
+    <section style={{ backgroundColor: "#482fa0", color: "black" }}>
+      <div className="watchlist-container">
+        {message && <div className="remove-message">{message}</div>}
 
-      <header className="watchlist-header">
-        <h1>My Watchlist</h1>
-      </header>
+        <header className="watchlist-header">
+          <h1>My Watchlist</h1>
+        </header>
 
-      <div className="filter-container">
-          <label htmlFor="sort" style={{ marginRight: "10px", color: "#fff" }}>Sort By:</label>
-          <select id="sort" className="filter-select" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+        <div className="filter-container">
+          <label htmlFor="sort" style={{ marginRight: "10px", color: "#fff" }}>
+            Sort By:
+          </label>
+          <select
+            id="sort"
+            className="filter-select"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
             <option value="newest">Recently Added</option>
             <option value="title">A-Z (Title)</option>
             <option value="watchStatus">Watch Status</option>
           </select>
-      </div>
-
-      {items.length === 0 ? 
-      (
-        <div className="empty-state">Your watchlist is empty. Browse the shows and add to your watchlist!</div>
-      ) : 
-      (
-        <div className="watchlist-grid">
-          {sortedItems.map((item) => 
-            (
-                <div className="watchlist-card" key={item.id}>
-                    <div className="card-image-container">
-
-                        <img  src={item.cover_image || ""} className="card-poster"/>
-                        
-                        <div className= "status">
-                            {item.status}
-                        </div>
-                    </div>
-
-                    <div className="card-content">
-                        <h3 className="card-title">{item.title}</h3>
-                        
-                        <p className="card-metadata">
-                            {item.release_year} • {item.genre}
-                        </p>
-                        <p className="card-episodes"> {item.episodes} Episodes</p>
-                        
-                        <div className="card-actions">
-                            <button className="remove-btn" onClick={() => handleRemove(item.id, item.title)}>
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ))}
         </div>
-      )}
-    </div>
-  </section>    
+
+        {items.length === 0 ? (
+          <div className="empty-state">
+            Your watchlist is empty. Browse the shows and add to your watchlist!
+          </div>
+        ) : (
+          <div className="watchlist-grid">
+            {sortedItems.map((item) => (
+              <div className="watchlist-card" key={item.id}>
+                <div className="card-image-container">
+                  {item.cover_image && (
+                    <img src={item.cover_image} alt={item.title} />
+                  )}
+
+                  <div className="status">{item.status}</div>
+                </div>
+
+                <div className="card-content">
+                  <h3 className="card-title">{item.title}</h3>
+
+                  <p className="card-metadata">
+                    {item.release_year} • {item.genre}
+                  </p>
+                  <p className="card-episodes"> {item.episodes} Episodes</p>
+
+                  <div className="card-actions">
+                    <button
+                      className="remove-btn"
+                      onClick={() => handleRemove(item.id, item.title)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
