@@ -72,7 +72,7 @@ export default function WatchlistCard() {
         ) : items.length === 0 ? (
           <Typography color="text.secondary" variant="body2">
             Your watchlist is empty.{" "}
-            <Link href="/search" style={{ color: "inherit", textDecoration: "underline" }}>
+            <Link href="/app/anime" style={{ color: "inherit", textDecoration: "underline" }}>
               Add some anime
             </Link>
           </Typography>
