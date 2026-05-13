@@ -65,7 +65,7 @@ export default function WatchlistCard() {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
           Your Watchlist
         </Typography>
 

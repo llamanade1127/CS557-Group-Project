@@ -18,14 +18,14 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/admin_login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username, password }),
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Something went wrong.");
-      else { router.push("/app/dashboard"); router.refresh(); }
+      else { router.push("/admin/dashboard"); router.refresh(); }
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -63,9 +63,9 @@ export default function LoginPage() {
 
           <Box sx={{ mt: 3, pt: 2, borderTop: "1px solid", borderColor: "grey.300", textAlign: "center" }}>
             <Typography variant="body2" color="text.secondary">
-              Are you an administrator?{" "}
-              <Link href="/admin_login" style={{ fontWeight: 600, color: "#1976d2", textDecoration: "none" }}>
-                Admin Portal
+              Are you an User?{" "}
+              <Link href="/login" style={{ fontWeight: 600, color: "#1976d2", textDecoration: "none" }}>
+                User Portal
               </Link>
             </Typography>
           </Box>

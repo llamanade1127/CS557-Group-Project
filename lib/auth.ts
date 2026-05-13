@@ -47,13 +47,14 @@ export interface SessionUser {
   user_id: number;
   username: string;
   email: string;
+  role_id: number;
 }
 
 export async function getSessionUser(raw: string): Promise<SessionUser | null> {
   const session = await prisma.session.findUnique({
     where: { tokenHash: hashToken(raw) },
     include: {
-      user: { select: { user_id: true, email: true, username: true } },
+      user: { select: { user_id: true, email: true, username: true, role_id: true } },
     },
   });
 
