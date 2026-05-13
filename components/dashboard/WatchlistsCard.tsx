@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Divider, CircularProgress, Box, Chip } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Divider,
+  CircularProgress,
+  Box,
+  Chip,
+} from "@mui/material";
 import Link from "next/link";
 
 interface WatchlistItem {
@@ -22,13 +30,13 @@ export default function WatchlistCard() {
       try {
         const response = await fetch("/api/watchlist");
         const data = await response.json();
-        
+
         if (!response.ok) {
           console.warn("Watchlist fetch error:", data.error);
           setError(null); // Don't show error for unauthenticated users in dashboard
           return;
         }
-        
+
         setItems(data.slice(0, 5)); // Show first 5 items
       } catch (err) {
         console.error("Watchlist fetch error:", err);
@@ -39,7 +47,9 @@ export default function WatchlistCard() {
     fetchWatchlist();
   }, []);
 
-  const getStatusColor = (status: string): "error" | "warning" | "success" | "info" => {
+  const getStatusColor = (
+    status: string,
+  ): "error" | "warning" | "success" | "info" => {
     switch (status) {
       case "COMPLETED":
         return "success";
@@ -72,33 +82,48 @@ export default function WatchlistCard() {
         ) : items.length === 0 ? (
           <Typography color="text.secondary" variant="body2">
             Your watchlist is empty.{" "}
-            <Link href="/app/anime" style={{ color: "inherit", textDecoration: "underline" }}>
+            <Link
+              href="/app/anime"
+              style={{ color: "inherit", textDecoration: "underline" }}
+            >
               Add some anime
             </Link>
           </Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {items.filter((item) => item.status !== "DROPPED").map((item) => (
-              <Box key={item.id} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, flex: 1 }}>
-                  {item.title}
-                </Typography>
-                <Chip
-                  label={item.status.replace(/_/g, " ")}
-                  size="small"
-                  color={getStatusColor(item.status)}
-                  variant="outlined"
-                />
-              </Box>
-            ))}
-            <Link href="/app/dashboard" style={{ textDecoration: "none" }}>
+            {items
+              .filter((item) => item.status !== "DROPPED")
+              .map((item) => (
+                <Box
+                  key={item.id}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 500, flex: 1 }}>
+                    {item.title}
+                  </Typography>
+                  <Chip
+                    label={item.status.replace(/_/g, " ")}
+                    size="small"
+                    color={getStatusColor(item.status)}
+                    variant="outlined"
+                  />
+                </Box>
+              ))}
+            <Link href="/app/watchlist_page" style={{ textDecoration: "none" }}>
               <Typography
                 variant="body2"
-                sx={{ color: "primary.main", fontWeight: 500, mt: 1, cursor: "pointer" }}
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 500,
+                  mt: 1,
+                  cursor: "pointer",
+                }}
               >
-              <Link  href="/app/watchlist_page">
-              View All -
-              </Link>
+                View All -
               </Typography>
             </Link>
           </Box>
