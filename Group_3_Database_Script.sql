@@ -165,17 +165,39 @@ LEFT JOIN User u ON w.user_id = u.user_id
 LEFT JOIN Anime a ON a.anime_id = w.anime_id;
 
 
-/*
-* Triggers
-*/
-
-
-/*
-* Procedures/Functions
-*/
-
 
 /*
 * Cursors
 */
+
+/*
+* Procedures/Functions
+*/
+DELIMITER //
+CREATE PROCEDURE addToWatchlist(
+    IN p_user_id INT,
+    IN p_anime_id INT
+)
+BEGIN
+    INSERT IGNORE INTO Watchlist (user_id, anime_id, status)
+    VALUES (p_user_id, p_anime_id, 'PLAN_TO_WATCH');
+END //
+DELIMITER ;
+
+
+/*
+* Triggers
+*/
+
+DELIMITER //
+CREATE TRIGGER deleteUser
+BEFORE DELETE
+ON User
+FOR EACH ROW
+BEGIN
+    DELETE FROM Session WHERE userId = OLD.user_id;
+    DELETE FROM Watchlist WHERE user_id = OLD.user_id;
+    DELETE FROM User_Rating WHERE user_id = OLD.user_id;
+END //
+DELIMITER ;
 
