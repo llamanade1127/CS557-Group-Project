@@ -55,7 +55,7 @@ export default function WatchlistCard() {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
           Your Watchlist
         </Typography>
 
@@ -72,7 +72,7 @@ export default function WatchlistCard() {
         ) : items.length === 0 ? (
           <Typography color="text.secondary" variant="body2">
             Your watchlist is empty.{" "}
-            <Link href="/search" style={{ color: "inherit", textDecoration: "underline" }}>
+            <Link href="/app/anime" style={{ color: "inherit", textDecoration: "underline" }}>
               Add some anime
             </Link>
           </Typography>
