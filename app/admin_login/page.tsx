@@ -25,7 +25,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Something went wrong.");
-      else { router.push("/admin/dashboard"); router.refresh(); }
+      else { router.push("/adm"); router.refresh(); }
     } catch {
       setError("Network error. Please try again.");
     } finally {
