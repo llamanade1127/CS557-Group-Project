@@ -1,177 +1,142 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import Footer from './app/publicHomepage/footer/footer'
 
-type Anime = {
-  anime_id: number;
-  title: string;
-  cover_image: string | null;
-  genre: string | null;
-  episodes: number | null;
-  release_year: number | null;
-  description: string | null;
-};
+import './app/publicHomepage/body.css'
 
-type RatingSummary = {
-  average: number;
-  count: number;
-};
 
-export default function Home() {
-  const [animeList, setAnimeList] = useState<Anime[]>([]);
-  const [ratings, setRatings] = useState<Record<number, RatingSummary>>({});
-  const [userRatings, setUserRatings] = useState<Record<number, number>>({});
-  const [loading, setLoading] = useState(true);
-
-  const testUserId = 1; // temporary until login is connected
-
-  useEffect(() => {
-    fetchAnime();
-  }, []);
-
-  async function fetchAnime() {
-    try {
-      const res = await fetch("/api/test_anime");
-      const data = await res.json();
-
-      setAnimeList(data);
-
-      data.forEach((anime: Anime) => {
-        fetchRating(anime.anime_id);
-      });
-    } catch (error) {
-      console.error("Failed to fetch anime:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchRating(animeId: number) {
-    try {
-      const res = await fetch(`/api/ratings?animeId=${animeId}`);
-      const data = await res.json();
-
-      setRatings((prev) => ({
-        ...prev,
-        [animeId]: data,
-      }));
-    } catch (error) {
-      console.error("Failed to fetch rating:", error);
-    }
-  }
-
-  async function submitRating(animeId: number, ratingScore: number) {
-    try {
-      const res = await fetch("/api/ratings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: testUserId,
-          animeId,
-          ratingScore,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to submit rating");
-      }
-
-      setUserRatings((prev) => ({
-        ...prev,
-        [animeId]: ratingScore,
-      }));
-
-      await fetchRating(animeId);
-    } catch (error) {
-      console.error("Failed to submit rating:", error);
-    }
-  }
-
-  if (loading) {
-    return <main style={{ padding: "2rem" }}>Loading anime...</main>;
-  }
-
+export default function Body() {
   return (
-    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <h1>AniMaList</h1>
-      <p>Rate your favorite anime</p>
+    <>
+    <section id = "home" style={{ backgroundColor: 'white', color:'black' }}>
+          <div className="container">
+              <div className="row">
+                  <div className="column left">
+                      <Image src="/images/NewMac.png" alt="Description" width={800} height={650} />
 
-      <div style={{ display: "grid", gap: "1rem", marginTop: "2rem" }}>
-        {animeList.map((anime) => {
-          const selectedRating = userRatings[anime.anime_id] || 0;
-          const ratingSummary = ratings[anime.anime_id];
+                  </div>
+                  <div className="column right">
+                      <h1>
+                          Your Ultimate Anime Journey Starts Here
+                      </h1>
+                      <p>
+                          Users who are anime lovers or just getting started can browse through the list of anime series where they could find their favorite shows, manage their watchlist, rate the content, and receive personalized recommendations based on their view history.
+                      </p>
+                      <p><br></br>Join thousands of fans managing their viewing history and getting personalized recommendations based on what they actually love.</p>
 
-          return (
-            <div
-              key={anime.anime_id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                padding: "1rem",
-                maxWidth: "600px",
-              }}
-            >
-              <h2>{anime.title}</h2>
-            <img src={anime.cover_image || "/placeholder.jpg"} alt={anime.title} style={{ width: '100%', height: 'auto' }} />
+                      <div style={{ marginTop: '20px' }}>
+                        <Link href="/login" style={{
+                          display: 'inline-block',
+                          padding: '0.75rem 2rem',
+                          backgroundColor: '#2e1d6e',
+                          color: 'white',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontWeight: 'bold',
+                          fontSize: '1rem',
+                        }}>
+                          Get Started
+                        </Link>
+                      </div>
 
-              <p>
-                <strong>Genre:</strong> {anime.genre || "N/A"}
-              </p>
-
-              <p>
-                <strong>Episodes:</strong> {anime.episodes || "N/A"}
-              </p>
-
-              <p>
-                <strong>Release Year:</strong> {anime.release_year || "N/A"}
-              </p>
-
-              <p>{anime.description || "No description available."}</p>
-
-              <div style={{ marginTop: "1rem" }}>
-                <strong>Rate this anime:</strong>
-
-                <div style={{ marginTop: "0.5rem" }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => submitRating(anime.anime_id, star)}
-                      style={{
-                        fontSize: "1.8rem",
-                        marginRight: "0.25rem",
-                        cursor: "pointer",
-                        background: "none",
-                        border: "none",
-                        opacity: star <= selectedRating ? 1 : 0.35,
-                      }}
-                    >
-                      {star <= selectedRating ? "⭐" : "☆"}
-                    </button>
-                  ))}
-                </div>
-
-                <p>
-                  <strong>Your Rating:</strong>{" "}
-                  {selectedRating > 0 ? `${selectedRating} / 5` : "Not rated yet"}
-                </p>
+                  </div>
               </div>
+          </div>
+      </section>
 
-              <p style={{ marginTop: "1rem" }}>
-                <strong>Average Rating:</strong>{" "}
-                {ratingSummary?.count > 0
-                  ? `${ratingSummary.average.toFixed(1)} / 5`
-                  : "No ratings yet"}
-              </p>
+      <section id = "features" style={{ backgroundColor: 'white', color:'black' }}>
+            <h1 style={{ textAlign: 'center', marginBottom: '40px', fontSize: '2.5rem' }}>Features Designed for Fans</h1>
+              <div className="container">
+                  <div className="row">
+                      <div className="column">
+                        <h2 style={{ color: '#2e1d6e' }}>Your Personal Watchlist</h2>
+                        <div style={{ marginBottom: '5px' }}>
+                            <p style={{ marginBottom: '5px' }}>
+                                Take full control of your viewing experience with your personalized watchlist:
+                            </p>
 
-              <p>
-                <strong>Total Ratings:</strong> {ratingSummary?.count || 0}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    </main>
+                            <ol>
+                                <li><strong>Add:</strong> Save new discoveries.</li>
+                                <li><strong>View:</strong> Access your entire watchlist.</li>
+                                <li><strong>Delete:</strong> Keep your queue clean and relevant.</li>
+                            </ol>
+
+                            <p style={{ marginTop: '5px' }}>
+                                Keep track of what you've finished and what's up next in your queue.
+                            </p>
+                            <p style={{ marginTop: '5px' }}>
+                                Never lose your place again. Our intuitive interface ensures your list is always
+                                organized exactly how you like it.
+                            </p>
+                        </div>
+                          <p><br></br>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.</p>
+                      </div>
+
+                      <div className="column">
+                          <Image src="/images/list shows.png" alt="Description" width={800} height={650} />
+                      </div>
+
+                      <div className="column">
+                          <h2 style={{ color: '#2e1d6e' }}>Discover & Contribute</h2>
+                            <div style={{ marginBottom: '5px' }}>
+                                <p style={{ marginBottom: '5px' }}>
+                                    Expand your library and influence the community with our discovery tools:
+                                </p>
+
+                                <ol>
+                                    <li><strong>Search:</strong> Find shows from our massive database.</li>
+                                    <li><strong>Contribute:</strong> Add your own unique entries to the collection.</li>
+                                    <li><strong>Rate:</strong> Review and score every series you watch.</li>
+                                </ol>
+
+                                <p style={{ marginTop: '5px' }}>
+                                    Discovery has never been this seamless. Share your thoughts and help others find their next favorite show.
+                                </p>
+                                <p style={{ marginTop: '5px' }}>
+                                    Get personalized recommendations tailored to your taste based on your unique rating history.
+                                </p>
+
+                                <p><br></br>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.</p>
+
+                            </div>
+                      </div>
+                  </div>
+              </div>
+          </section>
+
+      <section className = "sectiontwo">
+              <div className="container">
+                  <div className="row">
+                      <div className="column left">
+                            <h1>Ready to Elevate Your Anime Experience?</h1>
+                            <p>
+                                Anime Watchlist is more than just a tracker—it's your personal gateway to the world of Japanese animation.
+                                Join a growing community of fans who take control of their viewing habits and never miss a beat.
+                            </p>
+                            <div style={{ marginTop: '20px'}}>
+                                <p>
+                                    Whether you want to deep-dive into seasonal hits or catalog the classics you've loved for years,
+                                    our platform provides the tools you need to stay organized. Rate your favorites, contribute
+                                    new titles, and see how your taste compares to fans worldwide.
+                                </p>
+                                <h3 style={{ fontWeight: 'bolder', color: '#c2b1ff' }}>
+                                    Your next five-star series is waiting to be discovered.
+                                </h3>
+                            </div>
+                       </div>
+                      <div className="column right">
+                          <Image src="/images/MACTwo.png" alt="Description" width={800} height={650} />
+
+                      </div>
+
+                  </div>
+              </div>
+        </section>
+        <Footer/>
+    </>
+
+
   );
 }

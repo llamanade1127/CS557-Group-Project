@@ -211,9 +211,6 @@ export default function RegisterPage() {
           </Button>
         </Box>
 
-        <Typography variant="caption" color="text.disabled" display="block" mt={2}>
-          Your password is hashed with bcrypt and never stored in plain text.
-        </Typography>
       </Paper>
     </Box>
   );
