@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "./style.css"; 
+import "./style.css";
 
-enum WatchStatus 
-{
+enum WatchStatus {
   COMPLETED = "COMPLETED",
   WATCHING = "WATCHING",
   PLAN_TO_WATCH = "PLAN_TO_WATCH",
-  DROPPED = "DROPPED"
+  DROPPED = "DROPPED",
 }
 
-interface WatchlistItem 
-{
+interface WatchlistItem {
   id: string;
   anime_id: number;
   title: string;
@@ -24,9 +22,7 @@ interface WatchlistItem
   description: string;
 }
 
-export default function WatchlistPage() 
-{
-
+export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [loading, setLoading] = useState(true);
@@ -34,68 +30,50 @@ export default function WatchlistPage()
   const [message, setMessage] = useState<string | null>(null);
   const [minEpisodes, setMinEpisodes] = useState(0);
 
-  useEffect(() => 
- {
-    async function fetchWatchlist() 
-    {
-      try 
-      {
-        const response = await fetch(`/api/watchlist?minEpisodes=${minEpisodes}`);
+  useEffect(() => {
+    async function fetchWatchlist() {
+      try {
+        const response = await fetch(
+          `/api/watchlist?minEpisodes=${minEpisodes}`,
+        );
         const data = await response.json();
 
-        if (!response.ok) 
-        {
+        if (!response.ok) {
           setError(data.error || "Failed to fetch watchlist");
           setItems([]);
-        } 
-        else 
-        {
+        } else {
           setItems(data);
         }
-      } catch (err) 
-      {
+      } catch (err) {
         setError("An error occurred while fetching your watchlist");
-      } finally 
-      {
+      } finally {
         setLoading(false);
       }
     }
     fetchWatchlist();
   }, [minEpisodes]);
 
-  const sortedItems = [...items].sort((a, b) => 
-  {
-    if (sortOrder === "title") 
-    {
-        return a.title.localeCompare(b.title);
-    } 
-    else if(sortOrder === "watchStatus")
-    {
-        return a.status.localeCompare(b.status);
-    }
-    else
-    {
-        return parseInt(b.id) - parseInt(a.id);
+  const sortedItems = [...items].sort((a, b) => {
+    if (sortOrder === "title") {
+      return a.title.localeCompare(b.title);
+    } else if (sortOrder === "watchStatus") {
+      return a.status.localeCompare(b.status);
+    } else {
+      return parseInt(b.id) - parseInt(a.id);
     }
   });
 
-  
-  const handleRemove = async (watchlistId: string, title: string) => 
-  {
-    try 
-    {
+  const handleRemove = async (watchlistId: string, title: string) => {
+    try {
       await fetch(`/api/watchlist?id=${watchlistId}`, { method: "DELETE" });
 
       setItems((prev) => prev.filter((item) => item.id !== watchlistId));
       setMessage(`${title} has been removed.`);
 
-      setTimeout(() => 
-      {
+      setTimeout(() => {
         setMessage(null);
       }, 3000);
-    } 
-    catch (err) 
-    {
+    } catch (err) {
       console.error("Failed to delete:", err);
     }
   };
@@ -126,47 +104,45 @@ export default function WatchlistPage()
             <option value="title">A-Z (Title)</option>
             <option value="watchStatus">Watch Status</option>
           </select>
-      </div>
-      <label htmlFor="minEpisodes" style={{ marginLeft: "20px", marginRight: "10px", color: "#fff" }}>Min Episodes:</label>
-      <select id="minEpisodes" className="filter-select" value={minEpisodes} onChange={(e) => setMinEpisodes(Number(e.target.value))}>
-        <option value={0}>Any</option>
-        <option value={12}>12+</option>
-        <option value={24}>24+</option>
-        <option value={50}>50+</option>
-        <option value={100}>100+</option>
-      </select>
-      {items.length === 0 ? 
-      (
-        <div className="empty-state">Your watchlist is empty. Browse the shows and add to your watchlist!</div>
-      ) : 
-      (
-        <div className="watchlist-grid">
-          {sortedItems.map((item) => 
-            (
-                <div className="watchlist-card" key={item.id}>
-                    <div className="card-image-container">
+        </div>
+        <label
+          htmlFor="minEpisodes"
+          style={{ marginLeft: "20px", marginRight: "10px", color: "#fff" }}
+        >
+          Min Episodes:
+        </label>
+        <select
+          id="minEpisodes"
+          className="filter-select"
+          value={minEpisodes}
+          onChange={(e) => setMinEpisodes(Number(e.target.value))}
+        >
+          <option value={0}>Any</option>
+          <option value={12}>12+</option>
+          <option value={24}>24+</option>
+          <option value={50}>50+</option>
+          <option value={100}>100+</option>
+        </select>
+        {items.length === 0 ? (
+          <div className="empty-state">
+            Your watchlist is empty. Browse the shows and add to your watchlist!
+          </div>
+        ) : (
+          <div className="watchlist-grid">
+            {sortedItems.map((item) => (
+              <div className="watchlist-card" key={item.id}>
+                <div className="card-image-container">
+                  {item.cover_image ? (
+                    <img
+                      src={item.cover_image}
+                      className="card-poster"
+                      alt={item.title}
+                    />
+                  ) : (
+                    <div className="card-poster no-image">No image</div>
+                  )}
 
-                        <img  src={item.cover_image || ""} className="card-poster"/>
-                        
-                        <div className= "status">
-                            {item.status}
-                        </div>
-                    </div>
-
-                    <div className="card-content">
-                        <h3 className="card-title">{item.title}</h3>
-                        
-                        <p className="card-metadata">
-                            {item.release_year} • {item.genre}
-                        </p>
-                        <p className="card-episodes"> {item.episodes} Episodes</p>
-                        
-                        <div className="card-actions">
-                            <button className="remove-btn" onClick={() => handleRemove(item.id, item.title)}>
-                                Remove
-                            </button>
-                        </div>
-                    </div>
+                  <div className="status">{item.status}</div>
                 </div>
 
                 <div className="card-content">
@@ -175,7 +151,8 @@ export default function WatchlistPage()
                   <p className="card-metadata">
                     {item.release_year} • {item.genre}
                   </p>
-                  <p className="card-episodes"> {item.episodes} Episodes</p>
+
+                  <p className="card-episodes">{item.episodes} Episodes</p>
 
                   <div className="card-actions">
                     <button
