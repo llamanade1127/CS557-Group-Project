@@ -7,6 +7,7 @@ import {
   CircularProgress, Button, Box,
 } from "@mui/material";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Anime = {
   anime_id: number;
@@ -18,6 +19,7 @@ type Anime = {
 };
 
 export default function ShowsListCard() {
+  const router = useRouter();
   const [shows, setShows] = useState<Anime[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,7 +71,12 @@ export default function ShowsListCard() {
             </TableHead>
             <TableBody>
               {shows.map((show) => (
-                <TableRow key={show.anime_id} hover>
+                <TableRow
+                  key={show.anime_id}
+                  hover
+                  onClick={() => router.push(`/app/anime/${show.anime_id}`)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell>{show.title}</TableCell>
                   <TableCell>{show.genre}</TableCell>
                   <TableCell align="center">{show.episodes}</TableCell>

@@ -48,7 +48,7 @@ export default function ProfilePage() {
     setSaving(true);
 
     try {
-      await fetch("/api/profile", {
+      const res = await fetch("/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -58,6 +58,12 @@ export default function ProfilePage() {
           email,
         }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error ?? "Failed to update profile");
+        return;
+      }
 
       await fetchProfile();
       alert("Profile updated successfully");
