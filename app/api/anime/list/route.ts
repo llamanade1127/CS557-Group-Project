@@ -5,10 +5,9 @@ import { RowDataPacket } from "mysql2";
 export async function GET() {
   try {
     const [rows] = await pool.execute<RowDataPacket[]>(
-      `SELECT a.anime_id, a.title, g.genre_name AS genre, a.release_year, a.episodes, a.description
-       FROM Anime a
-       JOIN Genre g ON a.genre_id = g.genre_id
-       ORDER BY a.anime_id DESC`
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info
+       ORDER BY anime_id DESC`
     );
 
     return NextResponse.json(rows);

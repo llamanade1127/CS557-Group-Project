@@ -20,7 +20,8 @@ export async function GET(req: Request) {
   try {
     // 1. Search our DB first
     const [dbResults] = await pool.execute(
-      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info WHERE title LIKE ? ORDER BY title ASC`,
       [`%${q.toLowerCase()}%`]
     );
 
@@ -63,7 +64,8 @@ export async function GET(req: Request) {
 
     // 5. Re-query DB to get merged de-duped list
     const [merged] = await pool.execute(
-      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info WHERE title LIKE ? ORDER BY title ASC`,
       [`%${q.toLowerCase()}%`]
     );
 

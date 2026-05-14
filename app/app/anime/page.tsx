@@ -16,6 +16,7 @@ type Anime = {
   episodes: number;
   release_year: number;
   description: string;
+  avg_rating: number;
 };
 
 export default function AnimePage() {
@@ -71,7 +72,7 @@ export default function AnimePage() {
           Anime Shows
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Search your library. If we find fewer than 5 local matches, we'll pull from Jikan and save them.
+          Search our database for shows
         </Typography>
       </Box>
 
@@ -126,6 +127,7 @@ export default function AnimePage() {
                     <TableCell><strong>Genre</strong></TableCell>
                     <TableCell align="center"><strong>Episodes</strong></TableCell>
                     <TableCell align="center"><strong>Year</strong></TableCell>
+                    <TableCell align="center"><strong>Avg Rating</strong></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -135,6 +137,7 @@ export default function AnimePage() {
                       <TableCell>{show.genre}</TableCell>
                       <TableCell align="center">{show.episodes || "—"}</TableCell>
                       <TableCell align="center">{show.release_year || "—"}</TableCell>
+                      <TableCell align="center">{show.avg_rating ?? "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

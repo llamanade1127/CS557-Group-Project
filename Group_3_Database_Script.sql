@@ -165,6 +165,15 @@ LEFT JOIN User  u ON w.user_id  = u.user_id
 LEFT JOIN Anime a ON w.anime_id = a.anime_id
 LEFT JOIN Genre g ON a.genre_id = g.genre_id;
 
+CREATE OR REPLACE VIEW anime_detailed_info AS
+SELECT a.anime_id, a.title, a.genre_id, a.description, a.release_year, a.episodes, g.genre_name, COALESCE(ROUND(r.avg_rating, 2), 0) AS avg_rating
+FROM Anime a 
+LEFT JOIN Genre g ON a.genre_id = g.genre_id
+LEFT JOIN (
+    SELECT anime_id, AVG(rating_score) AS avg_rating
+    FROM User_Rating
+    GROUP BY anime_id
+) AS r ON r.anime_id = a.anime_id;
 
 -- procedures
 

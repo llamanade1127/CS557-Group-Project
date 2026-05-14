@@ -14,6 +14,7 @@ type Anime = {
   genre: string;
   episodes: number;
   release_year: number;
+  avg_rating: number;
 };
 
 export default function ShowsListCard() {
@@ -63,6 +64,7 @@ export default function ShowsListCard() {
                 <TableCell><strong>Genre</strong></TableCell>
                 <TableCell align="center"><strong>Episodes</strong></TableCell>
                 <TableCell align="center"><strong>Year</strong></TableCell>
+                <TableCell align="center"><strong>Avg Rating</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -72,6 +74,7 @@ export default function ShowsListCard() {
                   <TableCell>{show.genre}</TableCell>
                   <TableCell align="center">{show.episodes}</TableCell>
                   <TableCell align="center">{show.release_year}</TableCell>
+                  <TableCell align="center">{show.avg_rating ?? "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
