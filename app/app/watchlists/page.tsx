@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   CircularProgress,
   FormControl,
   Grid,
@@ -26,13 +25,6 @@ enum WatchStatus {
   ON_HOLD = "ON_HOLD",
 }
 
-const STATUS_COLORS: Record<WatchStatus, "success" | "primary" | "default" | "error" | "warning"> = {
-  COMPLETED: "success",
-  WATCHING: "primary",
-  PLAN_TO_WATCH: "default",
-  DROPPED: "error",
-  ON_HOLD: "warning",
-};
 
 interface WatchlistItem {
   id: string;
@@ -76,6 +68,21 @@ export default function WatchlistPage() {
     if (sortOrder === "watchStatus") return a.status.localeCompare(b.status);
     return parseInt(b.id) - parseInt(a.id);
   });
+
+  async function handleStatusChange(watchlistId: string, newStatus: WatchStatus) {
+    setItems((prev) =>
+      prev.map((item) => item.id === watchlistId ? { ...item, status: newStatus } : item)
+    );
+    try {
+      await fetch(`/api/watchlist?id=${watchlistId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch {
+      console.error("Failed to update status");
+    }
+  }
 
   async function handleRemove(watchlistId: string, title: string) {
     try {
@@ -139,12 +146,19 @@ export default function WatchlistPage() {
                     <Typography variant="h6" fontWeight={600} sx={{ lineHeight: 1.3, mr: 1 }}>
                       {item.title}
                     </Typography>
-                    <Chip
-                      label={item.status.replace(/_/g, " ")}
-                      color={STATUS_COLORS[item.status] ?? "default"}
-                      size="small"
-                      sx={{ flexShrink: 0 }}
-                    />
+                    <FormControl size="small" sx={{ flexShrink: 0, minWidth: 130 }}>
+                      <Select
+                        value={item.status}
+                        onChange={(e) => handleStatusChange(item.id, e.target.value as WatchStatus)}
+                        sx={{ fontSize: 13 }}
+                      >
+                        {Object.values(WatchStatus).map((s) => (
+                          <MenuItem key={s} value={s} sx={{ fontSize: 13 }}>
+                            {s.replace(/_/g, " ")}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
 
                   <Typography variant="body2" color="text.secondary" mb={0.5}>
