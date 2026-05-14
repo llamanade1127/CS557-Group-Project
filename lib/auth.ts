@@ -1,46 +1,37 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { prisma } from "./prisma";
+import { pool } from "./db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 const BCRYPT_ROUNDS = 12;
 const SESSION_DAYS = 7;
-
-// ── Passwords ─────────────────────────────────────────────────
 
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, BCRYPT_ROUNDS);
 }
 
-/** Always runs bcrypt even when the user doesn't exist — prevents timing attacks. */
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
   return bcrypt.compare(plain, hash);
 }
 
-// ── Session tokens ────────────────────────────────────────────
-
 function generateRawToken(): string {
-  return crypto.randomBytes(48).toString("hex"); // 96-char hex, sent as cookie
+  return crypto.randomBytes(48).toString("hex");
 }
 
 export function hashToken(raw: string): string {
-  return crypto.createHash("sha256").update(raw).digest("hex"); // stored in DB
+  return crypto.createHash("sha256").update(raw).digest("hex");
 }
-
-// ── Session CRUD ──────────────────────────────────────────────
 
 export async function createSession(userId: number): Promise<string> {
   const raw = generateRawToken();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000);
 
-  await prisma.session.create({
-    data: {
-      userId,
-      tokenHash: hashToken(raw),
-      expiresAt,
-    },
-  });
+  await pool.execute<ResultSetHeader>(
+    "INSERT INTO Session (userId, tokenHash, expiresAt) VALUES (?, ?, ?)",
+    [userId, hashToken(raw), expiresAt]
+  );
 
-  return raw; // caller sets this as an HttpOnly cookie
+  return raw;
 }
 
 export interface SessionUser {
@@ -51,17 +42,18 @@ export interface SessionUser {
 }
 
 export async function getSessionUser(raw: string): Promise<SessionUser | null> {
-  const session = await prisma.session.findUnique({
-    where: { tokenHash: hashToken(raw) },
-    include: {
-      user: { select: { user_id: true, email: true, username: true, role_id: true } },
-    },
-  });
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT u.user_id, u.username, u.email, u.role_id
+     FROM Session s
+     JOIN User u ON s.userId = u.user_id
+     WHERE s.tokenHash = ? AND s.expiresAt > NOW()`,
+    [hashToken(raw)]
+  );
 
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
+  if (rows.length === 0) return null;
+  return rows[0] as SessionUser;
 }
 
 export async function deleteSession(raw: string): Promise<void> {
-  await prisma.session.deleteMany({ where: { tokenHash: hashToken(raw) } });
+  await pool.execute("DELETE FROM Session WHERE tokenHash = ?", [hashToken(raw)]);
 }

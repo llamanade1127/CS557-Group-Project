@@ -25,7 +25,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Something went wrong.");
-      else { router.push("/admin/dashboard"); router.refresh(); }
+      else { router.push("/adm"); router.refresh(); }
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -36,10 +36,8 @@ export default function LoginPage() {
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "grey.100" }}>
       <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 400 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Sign in</Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
-          No account? <Link href="/register">Create one</Link>
-        </Typography>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Admin Sign in</Typography>
+
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 

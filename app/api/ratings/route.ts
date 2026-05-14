@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { pool } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { RowDataPacket } from "mysql2";
 
 export async function POST(req: Request) {
   try {
@@ -67,11 +67,28 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const animeId = Number(searchParams.get("animeId"));
+    const animeIdParam = searchParams.get("animeId");
 
-    if (!animeId) {
-      return NextResponse.json({ error: "animeId is required" }, { status: 400 });
+    if (!animeIdParam) {
+      const [rows] = await pool.execute<RowDataPacket[]>(
+        `SELECT r.rating_id, r.rating_score, r.rated_at,
+                a.title AS anime_title, u.username
+         FROM User_Rating r
+         JOIN Anime a ON r.anime_id = a.anime_id
+         JOIN User u ON r.user_id = u.user_id
+         ORDER BY r.rated_at DESC`
+      );
+      const ratings = (rows as RowDataPacket[]).map((r) => ({
+        rating_id: r.rating_id,
+        rating_score: r.rating_score,
+        rated_at: r.rated_at,
+        anime: { title: r.anime_title },
+        user: { username: r.username },
+      }));
+      return NextResponse.json(ratings);
     }
+
+    const animeId = Number(animeIdParam);
 
     const [rows] = await pool.execute<RowDataPacket[]>(
       "SELECT rating_score FROM User_Rating WHERE anime_id = ?",

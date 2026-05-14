@@ -3,7 +3,11 @@ import {ResultSetHeader} from "mysql2";
 
 export async function GET() {
   try {
-    const [rows] = await pool.execute("SELECT * FROM Anime ORDER BY title ASC");
+    const [rows] = await pool.execute(
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info
+       ORDER BY title ASC`
+    );
 
 
     return new Response(JSON.stringify(rows), { status: 200 });

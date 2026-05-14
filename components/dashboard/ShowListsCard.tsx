@@ -7,6 +7,7 @@ import {
   CircularProgress, Button, Box,
 } from "@mui/material";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Anime = {
   anime_id: number;
@@ -14,9 +15,11 @@ type Anime = {
   genre: string;
   episodes: number;
   release_year: number;
+  avg_rating: number;
 };
 
 export default function ShowsListCard() {
+  const router = useRouter();
   const [shows, setShows] = useState<Anime[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -63,15 +66,22 @@ export default function ShowsListCard() {
                 <TableCell><strong>Genre</strong></TableCell>
                 <TableCell align="center"><strong>Episodes</strong></TableCell>
                 <TableCell align="center"><strong>Year</strong></TableCell>
+                <TableCell align="center"><strong>Avg Rating</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {shows.map((show) => (
-                <TableRow key={show.anime_id} hover>
+                <TableRow
+                  key={show.anime_id}
+                  hover
+                  onClick={() => router.push(`/app/anime/${show.anime_id}`)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell>{show.title}</TableCell>
                   <TableCell>{show.genre}</TableCell>
                   <TableCell align="center">{show.episodes}</TableCell>
                   <TableCell align="center">{show.release_year}</TableCell>
+                  <TableCell align="center">{show.avg_rating ?? "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

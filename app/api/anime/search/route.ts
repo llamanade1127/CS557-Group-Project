@@ -20,7 +20,8 @@ export async function GET(req: Request) {
   try {
     // 1. Search our DB first
     const [dbResults] = await pool.execute(
-      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info WHERE title LIKE ? ORDER BY title ASC`,
       [`%${q.toLowerCase()}%`]
     );
 
@@ -48,22 +49,38 @@ export async function GET(req: Request) {
 
     // 4. Upsert shows that don't exist yet
     for (const anime of apiShows) {
-      const release_year = anime.year || 0;
-      const genre = anime.genres?.map((g) => g.name).join(", ") || "Unknown";
-      const description = anime.synopsis || "";
       const episodes = anime.episodes || 0;
+      if (episodes <= 0) continue; // CHECK constraint requires episodes > 0
+
+      const release_year = anime.year || new Date().getFullYear();
+      const genreName = anime.genres?.[0]?.name || "Unknown";
+      const description = anime.synopsis || "";
 
       await pool.execute(
-        `INSERT INTO Anime (title, genre, episodes, release_year, description)
+        `INSERT IGNORE INTO Genre (genre_name) VALUES (?)`,
+        [genreName]
+      );
+
+      const [genreRows] = await pool.execute(
+        `SELECT genre_id FROM Genre WHERE genre_name = ?`,
+        [genreName]
+      ) as any[];
+
+      const genre_id = genreRows[0]?.genre_id;
+      if (!genre_id) continue;
+
+      await pool.execute(
+        `INSERT INTO Anime (title, genre_id, episodes, release_year, description)
          VALUES (?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE title = title`,
-        [anime.title, genre, episodes, release_year, description]
+        [anime.title, genre_id, episodes, release_year, description]
       );
     }
 
     // 5. Re-query DB to get merged de-duped list
     const [merged] = await pool.execute(
-      "SELECT * FROM Anime WHERE title LIKE ? ORDER BY title ASC",
+      `SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating
+       FROM anime_detailed_info WHERE title LIKE ? ORDER BY title ASC`,
       [`%${q.toLowerCase()}%`]
     );
 

@@ -82,7 +82,14 @@ export async function PUT(req: NextRequest) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === "ER_DUP_ENTRY") {
+      const field = err.sqlMessage?.includes("username") ? "Username" : "Email";
+      return NextResponse.json(
+        { error: `${field} is already taken` },
+        { status: 409 }
+      );
+    }
     console.error("[profile PUT]", err);
     return NextResponse.json(
       { error: "Server error" },

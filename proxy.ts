@@ -1,12 +1,23 @@
-// proxy.ts  (project root, next to package.json)
-// Next.js 16 renamed middleware.ts → proxy.ts and the export middleware → proxy
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
+import { pool } from "@/lib/db";
+import type { RowDataPacket } from "mysql2";
 
-// ── Which routes require a logged-in user? ────────────────────
-const PROTECTED = ["/dashboard", "/watchlist", "/profile"];
+const PROTECTED = ["/app"];
+const AUTH_ONLY  = ["/login", "/register", "/admin_login"];
 
-// ── Which routes should redirect to dashboard if ALREADY logged in?
-const AUTH_ONLY = ["/login", "/register"];
+async function sessionIsValid(raw: string): Promise<boolean> {
+  try {
+    const tokenHash = createHash("sha256").update(raw).digest("hex");
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      "SELECT 1 FROM Session WHERE tokenHash = ? AND expiresAt > NOW()",
+      [tokenHash]
+    );
+    return (rows as RowDataPacket[]).length > 0;
+  } catch {
+    return false;
+  }
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -15,34 +26,19 @@ export async function proxy(req: NextRequest) {
   const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
   const isAuthOnly  = AUTH_ONLY.some((p) => pathname.startsWith(p));
 
-  // Can't query Prisma in the edge runtime, so we do a lightweight check:
-  // does the cookie exist and is it the right length?
-  // Full DB validation still happens in API routes and pages.
-  const hasSessionCookie = !!raw && raw.length === 96;
+  const valid = raw ? await sessionIsValid(raw) : false;
 
-  if (isProtected && !hasSessionCookie) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+  if (isProtected && !valid) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (isAuthOnly && hasSessionCookie) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/app/dashboard";
-    return NextResponse.redirect(url);
+  if (isAuthOnly && valid) {
+    return NextResponse.redirect(new URL("/app/dashboard", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/watchlist/:path*",
-    "/profile/:path*",
-    "/login",
-    "/register",
-    "/add_show"
-  ],
+  matcher: ["/app/:path*", "/login", "/register", "/admin_login"],
 };
