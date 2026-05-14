@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Divider, CircularProgress, Box, Chip } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Divider,
+  CircularProgress,
+  Box,
+  Chip,
+} from "@mui/material";
 import Link from "next/link";
 
 interface WatchlistItem {
@@ -39,7 +47,9 @@ export default function WatchlistCard() {
     fetchWatchlist();
   }, []);
 
-  const getStatusColor = (status: string): "error" | "warning" | "success" | "info" => {
+  const getStatusColor = (
+    status: string,
+  ): "error" | "warning" | "success" | "info" => {
     switch (status) {
       case "COMPLETED":    return "success";
       case "WATCHING":     return "info";
@@ -66,7 +76,10 @@ export default function WatchlistCard() {
         ) : items.length === 0 ? (
           <Typography color="text.secondary" variant="body2">
             Your watchlist is empty.{" "}
-            <Link href="/app/anime" style={{ color: "inherit", textDecoration: "underline" }}>
+            <Link
+              href="/app/anime"
+              style={{ color: "inherit", textDecoration: "underline" }}
+            >
               Add some anime
             </Link>
           </Typography>

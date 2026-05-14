@@ -1,8 +1,8 @@
+import { pool } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionUser } from "@/lib/auth";
-import { pool } from "@/lib/db";
-import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import type { ResultSetHeader } from "mysql2";
 
 export async function GET(req: NextRequest)
 {
@@ -20,32 +20,23 @@ export async function GET(req: NextRequest)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      `SELECT
-         w.watchlist_id AS id,
-         a.anime_id,
-         a.title,
-         a.genre,
-         a.episodes,
-         a.release_year,
-         a.description,
-         w.status
-       FROM Watchlist w
-       JOIN Anime a ON a.anime_id = w.anime_id
-       WHERE w.user_id = ?
-       ORDER BY w.watchlist_id DESC`,
-      [user.user_id],
+    const { searchParams } = new URL(req.url);
+    const minEpisodes = Number(searchParams.get("minEpisodes") ?? 0);
+
+    const [results] = await pool.query(
+      "CALL filter_watchlist_by_episodes(?, ?)",
+      [user.user_id, minEpisodes]
     );
 
-    const items = rows.map((row) => ({
-      id: row.id.toString(),
-      anime_id: row.anime_id,
-      title: row.title,
-      genre: row.genre,
-      episodes: row.episodes,
-      release_year: row.release_year,
-      description: row.description,
-      status: row.status,
+    const items = (results as any[])[0].map((entry: any) => ({
+      id: entry.id.toString(),
+      anime_id: entry.anime_id,
+      title: entry.title,
+      genre: entry.genre,
+      episodes: entry.episodes,
+      release_year: entry.release_year,
+      description: entry.description,
+      status: entry.status,
     }));
 
     return NextResponse.json(items);
