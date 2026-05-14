@@ -61,6 +61,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Button onClick={() => router.push("/app/watchlists")} color="inherit">
                   Watchlist
                 </Button>
+                <Button onClick={() => router.push("/app/profile")} color="inherit">
+                  Profile
+                </Button>
                 <Button onClick={() => router.push("/app/add_show")} color="inherit">
                   Add Shows
                 </Button>

@@ -20,10 +20,6 @@ export default function DashboardPage() {
         <Grid size={{ xs: 12, md: 12 }}>
           <WatchlistCard />
         </Grid>
-
-        <Grid size={12}>
-          <AccountCard />
-        </Grid>
       </Grid>
     </Box>
   );
