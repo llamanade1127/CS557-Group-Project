@@ -185,6 +185,23 @@ END //
 DELIMITER ;
 
 
+DELIMITER //
+
+CREATE PROCEDURE update_user_profile(
+    IN p_user_id INT,
+    IN p_username VARCHAR(255),
+    IN p_email VARCHAR(255)
+)
+BEGIN
+    UPDATE User
+    SET
+        username = p_username,
+        email = p_email
+    WHERE user_id = p_user_id;
+END //
+
+DELIMITER ;
+
 /*
 * Triggers
 */
