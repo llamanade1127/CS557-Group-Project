@@ -42,6 +42,8 @@ export default function AnimeDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [watchlistId, setWatchlistId] = useState<number | null>(null);
   const [watchlistMessage, setWatchlistMessage] = useState("");
   const [watchlistError, setWatchlistError] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
@@ -74,6 +76,13 @@ export default function AnimeDetailsPage() {
     if (animeId) {
       fetchAnimeDetails();
       fetchRatingSummary();
+      fetch(`/api/watchlist?animeId=${animeId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setInWatchlist(data.inWatchlist === true);
+          setWatchlistId(data.watchlist_id ?? null);
+        })
+        .catch(() => {});
     }
   }, [animeId]);
 
@@ -99,10 +108,38 @@ export default function AnimeDetailsPage() {
         throw new Error(data.error || "Failed to add to watchlist");
       }
 
+      setInWatchlist(true);
+      setWatchlistId(data.watchlist_id);
       setWatchlistMessage("Added to your watchlist!");
     } catch (error) {
       setWatchlistError(
         error instanceof Error ? error.message : "Failed to add to watchlist",
+      );
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function removeFromWatchlist() {
+    if (!watchlistId) return;
+    setAdding(true);
+    setWatchlistMessage("");
+    setWatchlistError("");
+
+    try {
+      const res = await fetch(`/api/watchlist?id=${watchlistId}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove from watchlist");
+      }
+
+      setInWatchlist(false);
+      setWatchlistId(null);
+      setWatchlistMessage("Removed from your watchlist.");
+    } catch (error) {
+      setWatchlistError(
+        error instanceof Error ? error.message : "Failed to remove from watchlist",
       );
     } finally {
       setAdding(false);
@@ -210,13 +247,24 @@ export default function AnimeDetailsPage() {
           <Divider sx={{ my: 3 }} />
 
           <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              onClick={addToWatchlist}
-              disabled={adding}
-            >
-              {adding ? "Adding..." : "Add to Watchlist"}
-            </Button>
+            {inWatchlist ? (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={removeFromWatchlist}
+                disabled={adding}
+              >
+                {adding ? "Removing..." : "Remove from Watchlist"}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={addToWatchlist}
+                disabled={adding}
+              >
+                {adding ? "Adding..." : "Add to Watchlist"}
+              </Button>
+            )}
 
             <Box>
               <Typography variant="subtitle1" fontWeight={700} mb={1}>

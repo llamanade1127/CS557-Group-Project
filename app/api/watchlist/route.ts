@@ -21,6 +21,20 @@ export async function GET(req: NextRequest)
     }
 
     const { searchParams } = new URL(req.url);
+
+    const animeId = searchParams.get("animeId");
+    if (animeId) {
+      const [rows] = await pool.execute(
+        "SELECT watchlist_id FROM Watchlist WHERE user_id = ? AND anime_id = ? LIMIT 1",
+        [user.user_id, parseInt(animeId)]
+      ) as any[];
+      const row = rows[0];
+      return NextResponse.json({
+        inWatchlist: !!row,
+        watchlist_id: row?.watchlist_id ?? null,
+      });
+    }
+
     const minEpisodes = Number(searchParams.get("minEpisodes") ?? 0);
 
     const [results] = await pool.query(

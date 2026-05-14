@@ -9,7 +9,7 @@ export async function GET(
     const { id } = await params;
 
     const [rows] = await pool.execute(
-      "SELECT * FROM Anime WHERE anime_id = ?",
+      "SELECT anime_id, title, genre_name AS genre, genre_id, description, release_year, episodes, avg_rating FROM anime_detailed_info WHERE anime_id = ? ORDER BY title ASC",
       [id]
     );
 
@@ -20,7 +20,7 @@ export async function GET(
     }
 
     return NextResponse.json(anime);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Anime detail fetch error:", error);
     return NextResponse.json(
       { error: "Failed to fetch anime details" },
