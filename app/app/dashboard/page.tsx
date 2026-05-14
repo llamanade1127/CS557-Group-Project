@@ -9,7 +9,7 @@ export default function DashboardPage() {
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto", px: 2, py: 5 }}>
       <Typography variant="h4" fontWeight={700} mb={4}>
-        Welcome back 👋
+        Welcome back
       </Typography>
 
       <Grid container spacing={3}>

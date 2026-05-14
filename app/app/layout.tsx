@@ -21,21 +21,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then(({ user }) => {
-        if (!user) router.replace("/login");
+        if (!user) window.location.replace("/login");
         else setUser(user);
       })
-      .catch(() => router.replace("/login"))
+      .catch(() => window.location.replace("/login"))
       .finally(() => setCheckingAuth(false));
-  }, [router]);
+  }, []);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    router.replace("/login");
-    router.refresh();
+    window.location.replace("/login");
   }
 
-  if (checkingAuth) {
+  if (checkingAuth || !user) {
     return (
       <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <CircularProgress />
