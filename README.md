@@ -48,7 +48,12 @@ To initialize the database, you will need to run the `Group_2_Database_Script.sq
 Connect to the running MySQL container and run the SQL script:
 
 ```bash
-docker exec -i  mysql-anime_tracker mysql -u root -p < Group_2_Database_Script.sql
+docker exec -i -e MYSQL_PWD=MY_SQL_PASSWORD mysql-anime_tracker mysql -u root < PATH_TO_SCRIPT/Group_2_Database_Script.sql
+```
+*Note: If you are using powershell, you must do the following command*
+
+```powershell
+Get-Content Group_2_Database_Script.sql | docker exec -i -e MYSQL_PWD=password mysql-anime_tracker mysql -u root
 ```
 
 ### MySQL Workbench

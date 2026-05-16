@@ -107,6 +107,11 @@ INSERT IGNORE INTO Role (role_id, role_name) VALUES
     (1, 'USER'),
     (2, 'ADMIN');
 
+-- Password for both users: (Password123)
+INSERT IGNORE INTO User (username, email, password, role_id) VALUES
+    ("user1", "user1@example.com", '$2b$12$/JlKi3dqsFMnD04oAlzMiewHG06K7a2hcyz0/NhsH29nGlJnErr9W', 1),
+    ("admin", "admin@example.com", '$2b$12$/JlKi3dqsFMnD04oAlzMiewHG06K7a2hcyz0/NhsH29nGlJnErr9W', 1);
+
 INSERT IGNORE INTO Genre (genre_name) VALUES
     ('Action'),
     ('Adventure'),
@@ -177,6 +182,7 @@ LEFT JOIN (
 
 -- procedures
 
+DROP PROCEDURE IF EXISTS update_user_profile;
 DELIMITER //
 
 CREATE PROCEDURE update_user_profile(
@@ -185,6 +191,15 @@ CREATE PROCEDURE update_user_profile(
     IN p_email VARCHAR(255)
 )
 BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM User
+        WHERE user_id = p_user_id
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'User does not exist.';
+    END IF;
+
     UPDATE User
     SET
         username = p_username,
@@ -219,6 +234,7 @@ BEGIN
     ON DUPLICATE KEY UPDATE rating_score = new_rating_score;
 END //
 DELIMITER ;
+
 
 DROP PROCEDURE IF EXISTS filter_watchlist_by_episodes;
 DELIMITER //
@@ -265,7 +281,7 @@ BEGIN
         description  TEXT
     );
 
-    DELETE FROM filtered_watchlist;
+    TRUNCATE TABLE filtered_watchlist;
 
     OPEN watchlist_cursor;
 
