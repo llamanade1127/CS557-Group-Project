@@ -110,7 +110,7 @@ INSERT IGNORE INTO Role (role_id, role_name) VALUES
 -- Password for both users: (Password123)
 INSERT IGNORE INTO User (username, email, password, role_id) VALUES
     ("user1", "user1@example.com", '$2b$12$/JlKi3dqsFMnD04oAlzMiewHG06K7a2hcyz0/NhsH29nGlJnErr9W', 1),
-    ("admin", "admin@example.com", '$2b$12$/JlKi3dqsFMnD04oAlzMiewHG06K7a2hcyz0/NhsH29nGlJnErr9W', 1);
+    ("admin", "admin@example.com", '$2b$12$/JlKi3dqsFMnD04oAlzMiewHG06K7a2hcyz0/NhsH29nGlJnErr9W', 2);
 
 INSERT IGNORE INTO Genre (genre_name) VALUES
     ('Action'),

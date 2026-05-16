@@ -79,3 +79,6 @@ npm install
 # Running the app
 Run `npm run dev` inside of the terminal, and it will host it at a default `localhost:3000`. You can access the app via any browser
 
+## Logging in
+
+The database creates 2 default users `user1` and `admin`. The passwords for both are `Password123`
