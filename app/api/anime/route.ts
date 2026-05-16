@@ -1,5 +1,5 @@
 import {pool} from "@/lib/db"
-import {ResultSetHeader} from "mysql2";
+import {ResultSetHeader, RowDataPacket} from "mysql2";
 
 export async function GET() {
   try {
@@ -30,9 +30,20 @@ export async function POST(req: Request) {
       });
     }
 
+    const [existingGenres] = await pool.execute<RowDataPacket[]>("SELECT genre_id FROM Genre WHERE genre_name = ?", [genre]);
+
+    let genre_id: number;
+
+    if(existingGenres.length > 0 ) {
+      genre_id = existingGenres[0].id;
+    } else {
+      const [genreResult] = await pool.execute<ResultSetHeader>("INSERT INTO Genre (genre_name) VALUES (?)", [genre]);
+      genre_id = genreResult.insertId;
+    }
+
     const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO Anime (title, genre, episodes, release_year, description) VALUES (?, ?, ?, ?, ?)",
-      [title, genre, episodes, release_year, description ?? ""]
+      "INSERT INTO Anime (title, genre_id, episodes, release_year, description) VALUES (?, ?, ?, ?, ?)",
+      [title, genre_id, episodes, release_year, description ?? ""]
     );
 
     return new Response(JSON.stringify({anime_id: result.insertId, title, genre, episodes, release_year, description}), { status: 201 });
